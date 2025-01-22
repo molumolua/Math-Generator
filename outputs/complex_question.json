@@ -1,0 +1,23 @@
+[
+    {
+        "original_problem": "If $x = 2$ and $y = 5$, then what is the value of $\\frac{x^4+2y^2}{6}$ ?",
+        "original_solution": "We have  \\[\\frac{x^4 + 2y^2}{6} = \\frac{2^4 + 2(5^2)}{6} = \\frac{16+2(25)}{6} = \\frac{16+50}{6} = \\frac{66}{6} = \\boxed{11}.\\]",
+        "complex_problem": "",
+        "complex_solution": "",
+        "response": "**Original Problem**:\nIf $x = 2$ and $y = 5$, then what is the value of $\\frac{x^4+2y^2}{6}$ ?\n\n**Original Solution**:\nWe have  \\[\\frac{x^4 + 2y^2}{6} = \\frac{2^4 + 2(5^2)}{6} = \\frac{16+2(25)}{6} = \\frac{16+50}{6} = \\frac{66}{6} = \\boxed{11}.\\]\n"
+    },
+    {
+        "original_problem": "The points $(9, -5)$ and $(-3, -1)$ are the endpoints of a diameter of a circle. What is the sum of the coordinates of the center of the circle?",
+        "original_solution": "The center of the circle is located at the midpoint of any diameter. Thus, the center of the circle is $\\left(\\frac{9+(-3)}{2}, \\frac{(-5)+(-1)}{2}\\right) = (3, -3)$. The sum of the coordinates of the center of the circle is therefore $3 + (-3) = \\boxed{0}$.",
+        "complex_problem": "",
+        "complex_solution": "",
+        "response": "**Original Problem**:\nThe points $(9, -5)$ and $(-3, -1)$ are the endpoints of a diameter of a circle. What is the sum of the coordinates of the center of the circle?\n\n**Original Solution**:\nThe center of the circle is located at the midpoint of any diameter. Thus, the center of the circle is $\\left(\\frac{9+(-3)}{2}, \\frac{(-5)+(-1)}{2}\\right) = (3, -3)$. The sum of the coordinates of the center of the circle is therefore $3 + (-3) = \\boxed{0}$.\n"
+    },
+    {
+        "original_problem": "Let \\[f(x) =\n\\begin{cases}\n2x^2 - 3&\\text{if } x\\le 2, \\\\\nax + 4 &\\text{if } x>2.\n\\end{cases}\n\\]Find $a$ if the graph of $y=f(x)$ is continuous (which means the graph can be drawn without lifting your pencil from the paper).",
+        "original_solution": "If the graph of $f$ is continuous, then the graphs of the two cases must meet when $x=2,$ which (loosely speaking) is the dividing point between the two cases. Therefore, we must have $2\\cdot 2^2 -3 = 2a + 4.$ Solving this equation gives $a = \\boxed{\\frac{1}{2}}.$",
+        "complex_problem": "",
+        "complex_solution": "",
+        "response": "**Original Problem**:\nLet\n\\[f(x) =\n\\begin{cases}\n2x^2 - 3 &\\text{if } x\\le 2, \\\\\nax + 4 &\\text{if } x>2.\n\\end{cases}\n\\]Find $a$ if the graph of $y=f(x)$ is continuous (which means the graph can be drawn without lifting your pencil from the paper).\n\n**Original Solution**:\nIf the graph of $f$ is continuous, then the graphs of the two cases must meet when $x=2,$ which (loosely speaking) is the dividing point between the two cases. Therefore, we must have $2\\cdot 2^2 -3 = 2a + 4.$ Solving this equation gives $a = \\boxed{\\frac{1}{2}}.$\n"
+    }
+]
