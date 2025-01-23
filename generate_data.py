@@ -16,13 +16,13 @@ import math
 def main(batch_size=64,
          device="cuda",
          output_path="./outputs/complex_question.json",
-         model_name_or_path="/home/bingxing2/home/scx8q73/jobs/LLaMA-Factory-main/saves/qwen2-7b/full/sft"):
+         model_name_or_path="/home/bingxing2/home/scx8q73/jobs/LLaMA-Factory-main/models/qwen2.5-Math-1.5b/full/sft"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
 
     # Load problems
     logger.info("Loading problems...")
-    problems = load_problems(iteration=None, min_level=1, max_level=5)[:3]
+    problems = load_problems(iteration=None, min_level=1, max_level=5)
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load model and tokenizer
@@ -60,7 +60,6 @@ def main(batch_size=64,
                 }
             ]
             messages_batch.append(message)
-        print(messages_batch)
         # 使用apply_chat_template批量处理
         texts = [tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True) for messages in messages_batch]
         # 将处理后的文本转化为模型输入
