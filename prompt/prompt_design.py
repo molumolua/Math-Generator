@@ -508,7 +508,7 @@ Your task is to transform the **Original Problem** into a more challenging versi
 Please provide the following sections in your answer:
 
 1. **Complexification Process**:
-   - Break down the original solution and identify opportunities to introduce more advanced concepts, such as higher-level algebra, calculus, or abstract methods.
+   - Break down the original solution and identify opportunities to introduce more advanced concepts.
    - Clearly explain **how** you are increasing the complexity by adding these techniques or ideas.
    - **Adjust the original problem statement** to reflect the more sophisticated approach.
 
@@ -554,4 +554,59 @@ def createComplexQuestionPrompt(problem, solution):
     prompt = complexification_prompt_noprocess
     prompt += "\n\n**Original Problem**:\n{}\n".format(problem)
     prompt += "\n**Original Solution**:\n{}\n".format(solution)
+    return prompt
+
+def createComplexQuestionProcessPrompt(problem, solution):
+    prompt = complexification_prompt
+    prompt += "\n\n**Original Problem**:\n{}\n".format(problem)
+    prompt += "\n**Original Solution**:\n{}\n".format(solution)
+    return prompt
+
+
+add_process_prompt = '''
+You are a mathematics expert tasked with increasing the complexity of a given problem.
+
+Supposing you have alreadly transfromed the **Original Problem** into **Complexified Problem**, your task is to supply the complification process.
+
+**Reversed Process** is the reversed version of your output, and you should use it to guide the output of complexification process.
+
+Only provide following content in your answer:
+- Break down the original solution and identify opportunities to introduce more advanced concepts.
+- Clearly explain **how** you are increasing the complexity by adding these techniques or ideas.
+- Provide the method how to adjust the original problem statement to reflect the more sophisticated approach.
+
+Do not output any titles,section labels,original problem or complexified problem and avoid to be verbose.
+'''
+
+
+def createAddProcessPrompt(problem_1, solution_1,problem_2,solution_2,reverse_process):
+    prompt = add_process_prompt
+    prompt += "\n\n**Original Problem**:\n{}\n".format(problem_1)
+    prompt += "\n**Original Solution**:\n{}\n".format(solution_1)
+    prompt += "\n**Complexified Problem**:\n{}\n".format(problem_2)
+    prompt += "\n**Complexified Solution**:\n{}\n".format(solution_2)
+    prompt += "\n**Reversed Process**:\n{}\n".format(reverse_process)
+    return prompt
+
+
+add_process_prompt_2 = '''
+You are a mathematics expert specializing in simplifying math problems.
+
+Supposing you have alreadly transfromed the **Original Problem** into **Simplified Problem**, your task is to supply the simplification process.
+
+Only provide following content in your answer:
+- Break down the original solution and identify significant core concepts or techniques that can be simplified, replaced, or deleted to generate a new problem.
+- Clearly explain **how** you are reducing complexity or using more basic methods.
+- Provide the method how to adjust the original problem statement to align with the simplified approach.
+
+Do not output any titles,section labels,original problem or simplified Problem and avoid to be verbose.
+'''
+
+
+def createAddProcessPrompt_2(problem_1, solution_1,problem_2,solution_2):
+    prompt = add_process_prompt_2
+    prompt += "\n\n**Original Problem**:\n{}\n".format(problem_1)
+    prompt += "\n**Original Solution**:\n{}\n".format(solution_1)
+    prompt += "\n**Simplified Problem**:\n{}\n".format(problem_2)
+    prompt += "\n**Simplified Solution**:\n{}\n".format(solution_2)
     return prompt
