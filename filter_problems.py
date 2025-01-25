@@ -55,7 +55,8 @@ def main(
                 "original_problem":data["original_problem"],
                 "original_solution":data["original_solution"],
                 "problem":data["complex_problem"],
-                "solution":data["complex_solution"]
+                "solution":data["complex_solution"],
+                "complexify_process":data['complexify_process']
             })
     #setup logger
     logger=set_logger.setup_logger()
