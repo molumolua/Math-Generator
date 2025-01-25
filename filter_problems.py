@@ -41,12 +41,12 @@ def process_compare(problem, sections, logger):
         return False
 
 def main(
-        data_path="./outputs/complex_question.json",
-        output_path='./outputs/filter_complex_question.json',
+        data_path="./outputs/complex_question_process_1.5b_math.json",
+        output_path='./outputs/filter_complex_question_process_1.5b_math_200.json',
         batch_size=64):
     with open(data_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
-    data_list=data_list[:200]
+    data_list=data_list[200:400]
     #preprocess problems
     problems=[]
     for data in data_list: 
