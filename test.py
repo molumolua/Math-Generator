@@ -50,6 +50,61 @@
 # print(response)
 
 
+# import os
+# import json
+# from util import util, set_logger
+# from reject_sample import reject_sample
+# from prompt.openai_access import batch_get_chat_api
+# from util.util import parse_answer
+# from prompt.prompt_design import createAddProcessPrompt_2
+# import math
+# def pre_reject_fun(example):
+#     return createAddProcessPrompt_2(example['original_problem'],example['original_solution'],example['problem'],example['solution'])
+
+# def post_fun(example, reply):
+#     example['simplify_process'] = reply
+# def main(
+#         data_path="./outputs/outputs_backup.json",
+#         output_path='./outputs/outputs_fixed.json',
+#         batch_size=64):
+#     with open(data_path, 'r', encoding='utf-8') as f:
+#         data_list = json.load(f)
+#     data_list=data_list
+#     #preprocess problems
+#     problems=[]
+#     for data in data_list:
+#         problems.append(data)
+#     problems=problems
+#     #setup logger
+#     logger=set_logger.setup_logger()
+#     total_problems = len(problems)
+#     total_batch=math.ceil(total_problems / batch_size)
+#     logger.info(f"Loaded {total_problems} problems to add process.")
+#     output_list=[]
+#     for batch in range(total_batch):
+#         batch_problems = problems[batch * batch_size:(batch + 1) * batch_size]
+#         logger.info(f"Batch {batch + 1}, Starting add process.")
+#         batch_get_chat_api(
+#             examples=batch_problems,
+#             eng="gpt-4o",
+#             pre_fun=pre_reject_fun,  # 拒绝采样
+#             post_fun=post_fun,
+#             logger=logger,
+#             n_processes=8,
+#             temperature=0.7,
+#             timeout=20,
+#             max_try=3
+#         )
+        
+#         output_list+=batch_problems
+#         with open(output_path, 'w', encoding='utf-8') as output_json:
+#             json.dump(output_list, output_json, ensure_ascii=False, indent=4)
+#         logger.info(f"Batch {batch + 1},Total {len(output_list)}/{min(len(problems),(batch+1)*batch_size)} has been left.")
+
+# if __name__ == "__main__":
+#     main()
+
+
 import os
 import json
 from util import util, set_logger
@@ -64,42 +119,22 @@ def pre_reject_fun(example):
 def post_fun(example, reply):
     example['simplify_process'] = reply
 def main(
-        data_path="./outputs/outputs_backup.json",
-        output_path='./outputs/outputs_fixed.json',
+        unfilter_data_path="./outputs/complex_question_process_1.5b_math.json",
+        data_path="./outputs/filter_complex_question_process_1.5b_math.json",
+        output_path='./outputs/train_data_filter_complex_question_process_1.5b_math.json',
         batch_size=64):
+    with open(unfilter_data_path, 'r', encoding='utf-8') as f:
+        unfilter_data_list = json.load(f)
     with open(data_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
-    data_list=data_list
-    #preprocess problems
-    problems=[]
-    for data in data_list:
-        problems.append(data)
-    problems=problems
-    #setup logger
-    logger=set_logger.setup_logger()
-    total_problems = len(problems)
-    total_batch=math.ceil(total_problems / batch_size)
-    logger.info(f"Loaded {total_problems} problems to add process.")
     output_list=[]
-    for batch in range(total_batch):
-        batch_problems = problems[batch * batch_size:(batch + 1) * batch_size]
-        logger.info(f"Batch {batch + 1}, Starting add process.")
-        batch_get_chat_api(
-            examples=batch_problems,
-            eng="gpt-4o",
-            pre_fun=pre_reject_fun,  # 拒绝采样
-            post_fun=post_fun,
-            logger=logger,
-            n_processes=8,
-            temperature=0.7,
-            timeout=20,
-            max_try=3
-        )
-        
-        output_list+=batch_problems
-        with open(output_path, 'w', encoding='utf-8') as output_json:
-            json.dump(output_list, output_json, ensure_ascii=False, indent=4)
-        logger.info(f"Batch {batch + 1},Total {len(output_list)}/{min(len(problems),(batch+1)*batch_size)} has been left.")
+    for data in data_list:
+        for data2 in unfilter_data_list:
+            if data['problem'] == data2['complex_problem']:
+                data['complexify_process']=data2['Complexification Process']
+        output_list.append(data)
+    with open(data_path, 'w', encoding='utf-8') as f:
+        json.dump(output_list, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
     main()
