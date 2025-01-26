@@ -11,7 +11,7 @@ def pre_reject_fun(example):
     return createAnsqerPrompt(example['problem'])
 
 def pre_compare_fun(example):
-    return createComparePrompt(example['original_problem'], example['original_solution'], example['problem'], example['solution'])
+    return createComparePrompt(example['problem'], example['solution'],example['original_problem'], example['original_solution'])
 
 def post_fun(example, reply):
     example['answer'] = reply
@@ -31,7 +31,7 @@ def process_compare(problem, sections, logger):
     try:
         if problem and problem['answer'] and sections:
             _,conclusion = parse_answer(problem['answer'], sections, logger)
-            if "later" in conclusion:
+            if "former" in conclusion:
                 return True
             else:
                 return False
@@ -43,14 +43,14 @@ def process_compare(problem, sections, logger):
 
 def main(
         data_path="./outputs/complex_question_process_1.5b_math.json",
-        output_path='./outputs/filter_complex_question_process_1.5b_math_400.json',
+        output_path='./outputs/new_filter_complex_question_process_1.5b_math_200.json',
         batch_size=128):
     with open(data_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
     random.seed(100)
-    data_list=data_list[400:]
-    random.shuffle(data_list)
-    data_list=data_list[:2000]
+    data_list=data_list[:200]
+    # random.shuffle(data_list)
+    # data_list=data_list[2000:2500]
     #preprocess problems
     problems=[]
     for data in data_list: 
