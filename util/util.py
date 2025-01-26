@@ -1,6 +1,8 @@
 import pprint
 from util.grader import math_equal
 import re
+from evaluation.grader import math_equal
+from evaluation.parser import extract_answer
 
 def last_boxed_only(sample):
     q, a = sample
@@ -265,6 +267,9 @@ def reject_sample(response,solution):
     '''
     input为两个完整答案的string
     '''
+    temp_ans = extract_answer(response,data_name="math")
+    ans = extract_answer(solution,data_name="math")
+    return math_equal(temp_ans,ans)
     temp_ans = remove_boxed(last_boxed_only_string(response))
     ans = remove_boxed(last_boxed_only_string(solution))
     return is_equiv(temp_ans,ans)
