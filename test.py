@@ -105,36 +105,153 @@
 #     main()
 
 
+# import os
+# import json
+# from util import util, set_logger
+# from reject_sample import reject_sample
+# from prompt.openai_access import batch_get_chat_api
+# from util.util import parse_answer
+# from prompt.prompt_design import createAddProcessPrompt_2
+# import math
+# def pre_reject_fun(example):
+#     return createAddProcessPrompt_2(example['original_problem'],example['original_solution'],example['problem'],example['solution'])
+
+# def post_fun(example, reply):
+#     example['simplify_process'] = reply
+# def main(
+#         unfilter_data_path="./outputs/complex_question_process_1.5b_math.json",
+#         data_path="./outputs/filter_complex_question_process_1.5b_math.json",
+#         output_path='./outputs/train_data_filter_complex_question_process_1.5b_math.json',
+#         batch_size=64):
+#     with open(unfilter_data_path, 'r', encoding='utf-8') as f:
+#         unfilter_data_list = json.load(f)
+#     with open(data_path, 'r', encoding='utf-8') as f:
+#         data_list = json.load(f)
+#     output_list=[]
+#     for data in data_list:
+#         for data2 in unfilter_data_list:
+#             if data['problem'] == data2['complex_problem']:
+#                 data['complexify_process']=data2['Complexification Process']
+#         output_list.append(data)
+#     with open(data_path, 'w', encoding='utf-8') as f:
+#         json.dump(output_list, f, ensure_ascii=False, indent=4)
+
+# if __name__ == "__main__":
+#     main()
+
+
+
 import os
 import json
 from util import util, set_logger
 from reject_sample import reject_sample
 from prompt.openai_access import batch_get_chat_api
 from util.util import parse_answer
-from prompt.prompt_design import createAddProcessPrompt_2
+from prompt.prompt_design import createAnsqerPrompt,createComparePrompt
 import math
+import random
 def pre_reject_fun(example):
-    return createAddProcessPrompt_2(example['original_problem'],example['original_solution'],example['problem'],example['solution'])
+    return createAnsqerPrompt(example['problem'])
+
+def pre_compare_fun(example):
+    return createComparePrompt(example['problem'], example['solution'],example['original_problem'], example['original_solution'])
 
 def post_fun(example, reply):
-    example['simplify_process'] = reply
+    example['answer'] = reply
+def process_reject_sample(problem, logger):
+    try:
+        if problem and problem['answer'] and problem['solution']:
+            result = reject_sample(problem['answer'], problem['solution'])
+            problem['reject_result']=result
+        else:
+            logger.warning(f"Missing data for reject sample in file.")
+            problem['reject_result']= False
+    except Exception as e:
+        logger.error(f"Error in process_reject_sample : {e}")
+        problem['reject_result']= False
+    return problem
+
+def process_compare(problem, sections, logger):
+    try:
+        if problem and problem['answer'] and sections:
+            step,conclusion = parse_answer(problem['answer'], sections, logger)
+            if "former" in conclusion:
+                problem['compare_result']="former"
+                problem["compare_step"]=step
+                return problem
+            else:
+                problem['compare_result']=False
+                return problem
+        logger.warning(f"Invalid data for compare in file.")
+        problem['compare_result']=False
+        return problem
+    except Exception as e:
+        logger.error(f"Error in process_compare: {e}")
+        problem['compare_result']=False
+        return problem
+
 def main(
-        unfilter_data_path="./outputs/complex_question_process_1.5b_math.json",
-        data_path="./outputs/filter_complex_question_process_1.5b_math.json",
-        output_path='./outputs/train_data_filter_complex_question_process_1.5b_math.json',
-        batch_size=64):
-    with open(unfilter_data_path, 'r', encoding='utf-8') as f:
-        unfilter_data_list = json.load(f)
+        data_path="./outputs/complex_question_process_1.5b_math.json",
+        output_path='./outputs/compared_complex_question_process_1.5b_math_200.json',
+        batch_size=128):
     with open(data_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
+    random.seed(100)
+    data_list=data_list[:200]
+    # random.shuffle(data_list)
+    # data_list=data_list[2000:2500]
+    #preprocess problems
+    problems=[]
+    for data in data_list: 
+        if(data["complex_problem"] and data["complex_solution"] and data['Complexification Process']):
+            problems.append({
+                "original_problem":data["original_problem"],
+                "original_solution":data["original_solution"],
+                "problem":data["complex_problem"],
+                "solution":data["complex_solution"],
+                "complexify_process":data['Complexification Process']
+            })
+    #setup logger
+    logger=set_logger.setup_logger()
+    total_problems = len(problems)
+    total_batch=math.ceil(total_problems / batch_size)
+    logger.info(f"Loaded {total_problems} problems to filter.")
     output_list=[]
-    for data in data_list:
-        for data2 in unfilter_data_list:
-            if data['problem'] == data2['complex_problem']:
-                data['complexify_process']=data2['Complexification Process']
-        output_list.append(data)
-    with open(data_path, 'w', encoding='utf-8') as f:
-        json.dump(output_list, f, ensure_ascii=False, indent=4)
+    for batch in range(total_batch):
+        batch_problems = problems[batch * batch_size:(batch + 1) * batch_size]
+        logger.info(f"Batch {batch + 1}, Starting reject sampling.")
+        batch_get_chat_api(
+            examples=batch_problems,
+            eng="gpt-4o",
+            pre_fun=pre_reject_fun,  # 拒绝采样
+            post_fun=post_fun,
+            logger=logger,
+            n_processes=8,
+            temperature=0.7,
+            timeout=20,
+            max_try=3
+        )
+        batch_problems = [process_reject_sample(problem, logger) for problem in batch_problems]
+        
+        logger.info(f"Batch {batch + 1}, Starting compare.")
+        batch_get_chat_api(
+            examples=batch_problems,
+            eng="gpt-4o",
+            pre_fun=pre_compare_fun,  # 比较
+            post_fun=post_fun,
+            logger=logger,
+            n_processes=8,
+            temperature=0.7,
+            timeout=20,
+            max_try=3
+        )
+        sections = [ "Reasoning Steps","Conclusion"]
+        batch_problems = [process_compare(problem, sections, logger) for problem in batch_problems]
+        
+        output_list+=batch_problems
+        with open(output_path, 'w', encoding='utf-8') as output_json:
+            json.dump(output_list, output_json, ensure_ascii=False, indent=4)
+        logger.info(f"Batch {batch + 1},Total {len(output_list)}/{min(len(problems),(batch+1)*batch_size)} has been left.")
 
 if __name__ == "__main__":
     main()
