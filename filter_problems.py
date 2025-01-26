@@ -6,6 +6,7 @@ from prompt.openai_access import batch_get_chat_api
 from util.util import parse_answer
 from prompt.prompt_design import createAnsqerPrompt,createComparePrompt
 import math
+import random
 def pre_reject_fun(example):
     return createAnsqerPrompt(example['problem'])
 
@@ -42,21 +43,24 @@ def process_compare(problem, sections, logger):
 
 def main(
         data_path="./outputs/complex_question_process_1.5b_math.json",
-        output_path='./outputs/filter_complex_question_process_1.5b_math_200.json',
-        batch_size=64):
+        output_path='./outputs/filter_complex_question_process_1.5b_math_400.json',
+        batch_size=128):
     with open(data_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
-    data_list=data_list[200:400]
+    random.seed(100)
+    data_list=data_list[400:]
+    random.shuffle(data_list)
+    data_list=data_list[:2000]
     #preprocess problems
     problems=[]
     for data in data_list: 
-        if(data["complex_problem"] and data["complex_solution"]):
+        if(data["complex_problem"] and data["complex_solution"] and data['Complexification Process']):
             problems.append({
                 "original_problem":data["original_problem"],
                 "original_solution":data["original_solution"],
                 "problem":data["complex_problem"],
                 "solution":data["complex_solution"],
-                "complexify_process":data['complexify_process']
+                "complexify_process":data['Complexification Process']
             })
     #setup logger
     logger=set_logger.setup_logger()
