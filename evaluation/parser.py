@@ -6,6 +6,7 @@ from evaluation.latex2sympy.latex2sympy2 import latex2sympy
 from typing import TypeVar, Iterable, List, Union, Any, Dict
 from word2number import w2n
 from evaluation.utils import *
+from evaluation.trajectory import *
 
 
 def _fix_fracs(string):
