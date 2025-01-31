@@ -14,7 +14,7 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data"):
                     },
                     {
                         "role": "user",
-                        "content": createComplexQuestionProcessPrompt(data['problem'],data['solution'])
+                        "content": createComplexQuestionProcessPrompt(data['original_problem'],data['original_solution'])
                     },
                     {
                         "role": "assistant",
@@ -47,13 +47,13 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data"):
             json.dump(problems, output_json, ensure_ascii=False, indent=4)
     return problems
 def main():
-    now_path="./outputs_23/outputs_process_23.json"
+    now_path="./outputs//filter_complex_question_process_1.5b_math.json"
     result_path="./outputs/train_data_math.json"
-    # file_path = os.path.join(now_path)
-    # with open(file_path, 'r', encoding='utf-8') as f:
-    #     data_list = json.load(f)
+    file_path = os.path.join(now_path)
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data_list = json.load(f)
     #     process_train_data(data_list,output_path=result_path,prompt_type="generate_data")
-    problems = load_problems(iteration=None)
-    process_train_data(problems,output_path=result_path,prompt_type="test_data_qwen")
+    # problems = load_problems(iteration=None)
+    process_train_data(data_list,output_path=result_path,prompt_type="test_data_qwen")
 if __name__ =="__main__":
     main()
