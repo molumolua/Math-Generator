@@ -41,17 +41,7 @@ def process_compare(problem, sections, logger):
         logger.error(f"Error in process_compare: {e}")
         return False
 
-def main(
-        data_path="./outputs/complex_question_process_1.5b_math.json",
-        output_path='./outputs/new_filter_complex_question_process_1.5b_math_200.json',
-        batch_size=128):
-    with open(data_path, 'r', encoding='utf-8') as f:
-        data_list = json.load(f)
-    random.seed(100)
-    data_list=data_list[:200]
-    # random.shuffle(data_list)
-    # data_list=data_list[2000:2500]
-    #preprocess problems
+def filter_problems(data_list,batch_size=64,save=False,save_path=None,logger=None):
     problems=[]
     for data in data_list: 
         if(data["complex_problem"] and data["complex_solution"] and data['Complexification Process']):
@@ -63,7 +53,6 @@ def main(
                 "complexify_process":data['Complexification Process']
             })
     #setup logger
-    logger=set_logger.setup_logger()
     total_problems = len(problems)
     total_batch=math.ceil(total_problems / batch_size)
     logger.info(f"Loaded {total_problems} problems to filter.")
@@ -104,9 +93,29 @@ def main(
         logger.info(f"Batch {batch + 1}, {len(reject_sampled_batch_problems)-len(compared_batch_problems)} problems fail in  compare.")
         
         output_list+=compared_batch_problems
-        with open(output_path, 'w', encoding='utf-8') as output_json:
-            json.dump(output_list, output_json, ensure_ascii=False, indent=4)
-        logger.info(f"Batch {batch + 1},Total {len(output_list)}/{min(len(problems),(batch+1)*batch_size)} has been left.")
-
+        if save:
+            with open(save_path, 'w', encoding='utf-8') as output_json:
+                json.dump(output_list, output_json, ensure_ascii=False, indent=4)
+    left_list = [ problem for problem in problems if problem not in output_list]
+    left_list = get_original_problem_solution(left_list)
+    return output_list,left_list
+def get_original_problem_solution(data_list):
+    output_list=[]
+    for problem in data_list:
+        output_list.append({
+            "problem":problem['original_problem'],
+            "solution":problem['solution']
+        })
+    return output_list
+def main(
+        data_path="./outputs_23/complex_question_process_1.5b_math.json",
+        output_path='./outputs_23/new_filter_complex_question_process_1.5b_math_400.json',
+        batch_size=128):
+    with open(data_path, 'r', encoding='utf-8') as f:
+        data_list = json.load(f)
+    random.seed(100)
+    data_list=data_list[200:400]
+    logger=set_logger.setup_logger()
+    filter_problems(data_list=data_list,batch_size=batch_size,save=True,save_path=output_path,logger=logger)
 if __name__ == "__main__":
     main()
