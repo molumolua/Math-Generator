@@ -33,7 +33,7 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
             problems = json.load(f)
     else:
         problems = load_problems(iteration=None, min_level=1, max_level=5)
-    problems= problems[:200]
+    problems= problems[:10]
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
