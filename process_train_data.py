@@ -14,7 +14,7 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data"):
                     },
                     {
                         "role": "user",
-                        "content": createComplexQuestionProcessPrompt(data['original_problem'],data['original_solution'])
+                        "content": createComplexQuestionProcessPrompt(data['problem'],data['solution'])
                     },
                     {
                         "role": "assistant",
@@ -31,11 +31,11 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data"):
                     },
                     {
                         "role": "user",
-                        "content": data['problem']
+                        "content": data['original_problem']
                     },
                     {
                         "role": "assistant",
-                        "content": data['solution']
+                        "content": data['original_solution']
                     }
                 ]
             }
@@ -48,7 +48,7 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data"):
     return problems
 def main():
     now_path="./outputs//filter_complex_question_process_1.5b_math.json"
-    result_path="./outputs/train_data_math.json"
+    result_path="./outputs/train_data_math_300.json"
     file_path = os.path.join(now_path)
     with open(file_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
