@@ -12,6 +12,7 @@ from prompt.prompt_design import createComplexQuestionProcessPrompt
 from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from filter_problems import filter_problems
+from process_train_data import process_train_data
 
 
 def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexification Process**"],
