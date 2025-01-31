@@ -205,7 +205,7 @@ def main_2(
                 output_list.append(data_2)
     with open(output_path, 'w', encoding='utf-8') as output_json:
         json.dump(output_list, output_json, ensure_ascii=False, indent=4)
-
+# filter problem 带参
 def main(
         data_path="./outputs_23/complex_question_process_1.5b_math.json",
         output_path='./outputs_23/compared_complex_question_process_1.5b_math_200.json',
@@ -268,5 +268,6 @@ def main(
         with open(output_path, 'w', encoding='utf-8') as output_json:
             json.dump(output_list, output_json, ensure_ascii=False, indent=4)
         logger.info(f"Batch {batch + 1},Total {len(output_list)}/{min(len(problems),(batch+1)*batch_size)} has been left.")
+
 if __name__ == "__main__":
     main()
