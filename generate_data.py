@@ -17,6 +17,7 @@ from filter_problems import filter_problems
 def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexification Process**"],
          max_tokens=4096,
          max_try=3,
+         enable_filter=False,
          device="cuda",
          input_path="./outputs_23/outputs_1.json",
          output_path="./outputs_23/complex_question_process_1.5b_math.json",
@@ -31,6 +32,7 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
             problems = json.load(f)
     else:
         problems = load_problems(iteration=None, min_level=1, max_level=5)
+    problems= problems[:200]
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
@@ -53,7 +55,8 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
     output_list = []
     now_problems = problems
     for _ in range(max_try):
-
+        if len(now_problems)==0:
+            break
         # input_texts = [
         #     tokenizer.apply_chat_template(
         #         [{"role": "user", "content": createComplexQuestionProcessPrompt(problem['problem'], problem['solution'])}],
@@ -92,7 +95,10 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
                 "Complexification Process": process
             }
             output_list.append(output_object)
-        output_list,now_problems=filter_problems(data_list=output_list,logger=logger)
+        if enable_filter:
+            output_list,now_problems=filter_problems(data_list=output_list,logger=logger)
+        else:
+            now_problems=[]
 
         # Save the output to a JSON file
         logger.info(f"Saving output to {output_path}...")
