@@ -18,6 +18,7 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
          max_tokens=4096,
          max_try=3,
          enable_filter=False,
+         use_chat_templete=False,
          device="cuda",
          input_path="./outputs_23/outputs_1.json",
          output_path="./outputs_23/complex_question_process_1.5b_math.json",
@@ -38,9 +39,10 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
     # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
     model = LLM(model_name_or_path, device=device)
-    tokenizer = AutoTokenizer.from_pretrained(
-                model_name_or_path, trust_remote_code=True
-    )
+    if use_chat_templete:
+        tokenizer = AutoTokenizer.from_pretrained(
+                    model_name_or_path, trust_remote_code=True
+        )
     logger.info("Model loaded successfully.")
 
     # Define sampling parameters
@@ -57,21 +59,23 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
     for _ in range(max_try):
         if len(now_problems)==0:
             break
-        # input_texts = [
-        #     tokenizer.apply_chat_template(
-        #         [{"role": "user", "content": createComplexQuestionProcessPrompt(problem['problem'], problem['solution'])}],
-        #         tokenize=False,
-        #         add_generation_prompt=True,
-        #     )
-        #     for problem in now_problems
-        # ]
         logger.info(f"{len(now_problems)} problems for {_} th try generating data...")
-        input_texts= [
-            "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n"+ \
-            createComplexQuestionProcessPrompt(problem['problem'], problem['solution'])+ \
-            "<|im_end|>\n<|im_start|>assistant\n"
-            for problem in now_problems
-        ]
+        if use_chat_templete:
+            input_texts = [
+                tokenizer.apply_chat_template(
+                    [{"role": "user", "content": createComplexQuestionProcessPrompt(problem['problem'], problem['solution'])}],
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+                for problem in now_problems
+            ]
+        else:
+            input_texts= [
+                "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n"+ \
+                createComplexQuestionProcessPrompt(problem['problem'], problem['solution'])+ \
+                "<|im_end|>\n<|im_start|>assistant\n"
+                for problem in now_problems
+            ]
         logger.info(input_texts[0])
             
         
