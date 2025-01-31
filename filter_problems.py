@@ -41,7 +41,7 @@ def process_compare(problem, sections, logger):
         logger.error(f"Error in process_compare: {e}")
         return False
 
-def filter_problems(data_list,batch_size=64,save=False,save_path=None,logger=None):
+def filter_problems(data_list,batch_size=64,save=False,save_path=None,logger=None,enable_reject=True,enable_compare=True):
     problems=[]
     for data in data_list: 
         if(data["complex_problem"] and data["complex_solution"] and data['Complexification Process']):
@@ -59,36 +59,41 @@ def filter_problems(data_list,batch_size=64,save=False,save_path=None,logger=Non
     output_list=[]
     for batch in range(total_batch):
         batch_problems = problems[batch * batch_size:(batch + 1) * batch_size]
-        logger.info(f"Batch {batch + 1}, Starting reject sampling.")
-        batch_get_chat_api(
-            examples=batch_problems,
-            eng="gpt-4o",
-            pre_fun=pre_reject_fun,  # 拒绝采样
-            post_fun=post_fun,
-            logger=logger,
-            n_processes=8,
-            temperature=0.7,
-            timeout=20,
-            max_try=3
-        )
-        reject_sampled_batch_problems = [problem for problem in batch_problems if process_reject_sample(problem, logger)]
+        if enable_reject:
+            logger.info(f"Batch {batch + 1}, Starting reject sampling.")
+            batch_get_chat_api(
+                examples=batch_problems,
+                eng="gpt-4o",
+                pre_fun=pre_reject_fun,  # 拒绝采样
+                post_fun=post_fun,
+                logger=logger,
+                n_processes=8,
+                temperature=0.7,
+                timeout=20,
+                max_try=3
+            )
+            reject_sampled_batch_problems = [problem for problem in batch_problems if process_reject_sample(problem, logger)]
+        else:
+            reject_sampled_batch_problems=batch_problems
         logger.info(f"Batch {batch + 1},{len(reject_sampled_batch_problems)} problems pass reject sample.")
         logger.info(f"Batch {batch + 1},{len(batch_problems)- len(reject_sampled_batch_problems)} problems fail in reject sample.")
-        
-        logger.info(f"Batch {batch + 1}, Starting compare.")
-        batch_get_chat_api(
-            examples=reject_sampled_batch_problems,
-            eng="gpt-4o",
-            pre_fun=pre_compare_fun,  # 比较
-            post_fun=post_fun,
-            logger=logger,
-            n_processes=8,
-            temperature=0.7,
-            timeout=20,
-            max_try=3
-        )
-        sections = [ "Reasoning Steps","Conclusion"]
-        compared_batch_problems = [problem for problem in reject_sampled_batch_problems if process_compare(problem, sections, logger)]
+        if enable_compare:
+            logger.info(f"Batch {batch + 1}, Starting compare.")
+            batch_get_chat_api(
+                examples=reject_sampled_batch_problems,
+                eng="gpt-4o",
+                pre_fun=pre_compare_fun,  # 比较
+                post_fun=post_fun,
+                logger=logger,
+                n_processes=8,
+                temperature=0.7,
+                timeout=20,
+                max_try=3
+            )
+            sections = [ "Reasoning Steps","Conclusion"]
+            compared_batch_problems = [problem for problem in reject_sampled_batch_problems if process_compare(problem, sections, logger)]
+        else:
+            compared_batch_problems = reject_sampled_batch_problems
         logger.info(f"Batch {batch + 1}, {len(compared_batch_problems)} problems pass compare.")
         logger.info(f"Batch {batch + 1}, {len(reject_sampled_batch_problems)-len(compared_batch_problems)} problems fail in  compare.")
         
