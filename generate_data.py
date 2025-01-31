@@ -17,7 +17,7 @@ from filter_problems import filter_problems
 def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexification Process**"],
          max_tokens=4096,
          max_try=3,
-         enable_filter=False,
+         enable_filter=True,
          use_chat_templete=False,
          device="cuda",
          input_path="./outputs_23/outputs_1.json",
