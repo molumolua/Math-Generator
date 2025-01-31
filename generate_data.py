@@ -17,8 +17,8 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
          max_tokens=4096,
          device="cuda",
          input_path="./outputs_23/outputs_1.json",
-         output_path="./outputs/complex_question_process_1.5b_math.json",
-         model_name_or_path="/home/bingxing2/home/scx8q73/jobs/LLaMA-Factory-main/models/qwen2.5-Math-1.5b-process/full/sft"):
+         output_path="./outputs_23/complex_question_process_1.5b_math.json",
+         model_name_or_path="/home/bingxing2/home/scx8q73/jobs/LLaMA-Factory-main/models/23-qwen2.5-Math-1.5b-process/full/sft"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
 
