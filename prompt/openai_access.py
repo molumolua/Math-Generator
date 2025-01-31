@@ -8,7 +8,7 @@ import logging
 from functools import partial
 from multiprocessing import Pool
 from tqdm import tqdm
-client = OpenAI(api_key=OPENAI_API_KEY,base_url="https://api.openai-proxy.com/v1")
+client = OpenAI(api_key=OPENAI_API_KEY,base_url="https://api.openai-proxy.com")
 def get_oai_completion(prompt,model,temperature):
     try:
         response = client.chat.completions.create(
