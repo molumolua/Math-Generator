@@ -16,6 +16,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexification Process**"],
          max_tokens=4096,
          device="cuda",
+         input_path="./outputs_23/outputs_1.json",
          output_path="./outputs/complex_question_process_1.5b_math.json",
          model_name_or_path="/home/bingxing2/home/scx8q73/jobs/LLaMA-Factory-main/models/qwen2.5-Math-1.5b-process/full/sft"):
     logger = set_logger.setup_logger()
@@ -23,7 +24,11 @@ def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexificati
 
     # Load problems
     logger.info("Loading problems...")
-    problems = load_problems(iteration=None, min_level=1, max_level=5)
+    if input_path:
+        with open(input_path, 'r', encoding='utf-8') as f:
+            problems = json.load(f)
+    else:
+        problems = load_problems(iteration=None, min_level=1, max_level=5)
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
