@@ -207,8 +207,8 @@ def main_2(
         json.dump(output_list, output_json, ensure_ascii=False, indent=4)
 # filter problem 带参
 def main(
-        data_path="./outputs_23/complex_question_process_1.5b_math.json",
-        output_path='./outputs_23/compared_complex_question_process_1.5b_math_200.json',
+        data_path=".\outputs\complex_question_process_deepseek.json",
+        output_path='.\outputs\compared_complex_question_process_deepseek_200.json',
         batch_size=128):
     with open(data_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
