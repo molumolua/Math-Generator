@@ -15,7 +15,7 @@ from filter_problems import filter_problems
 from process_train_data import process_train_data
 
 
-def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexification Process**"],
+def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complexification Process**"],
          max_tokens=4096,
          max_try=3,
          enable_filter=True,
