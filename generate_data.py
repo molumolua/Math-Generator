@@ -15,15 +15,15 @@ from filter_problems import filter_problems
 from process_train_data import process_train_data
 
 
-def main(stop_words = ["</s>", "<|im_end|>", "<|endoftext|>","\n**Complexification Process**"],
+def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complexification Process**"],
          max_tokens=4096,
          max_try=3,
          enable_filter=True,
          use_chat_templete=False,
          device="cuda",
-         input_path="./outputs_23/outputs_1.json",
-         output_path="./outputs_23/complex_question_process_1.5b_math.json",
-         model_name_or_path="/home/bingxing2/home/scx8q73/jobs/LLaMA-Factory-main/models/23-qwen2.5-Math-1.5b-process/full/sft"):
+         input_path=None,
+         output_path="./outputs/complex_question_process_deepseek.json",
+         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/DeepSeek-R1-Distill-Qwen-32B/full/sft"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
 
