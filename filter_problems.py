@@ -113,13 +113,13 @@ def get_original_problem_solution(data_list):
         })
     return output_list
 def main(
-        data_path="./outputs_23/complex_question_process_1.5b_math.json",
-        output_path='./outputs_23/new_filter_complex_question_process_1.5b_math_400.json',
+        data_path="/data/xucaijun/Math-Generator/outputs/complex_question_process_deepseek_check.json",
+        output_path='/data/xucaijun/Math-Generator/outputs/filter_complex_question_process_deepseek_200.json',
         batch_size=128):
     with open(data_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
     random.seed(100)
-    data_list=data_list[200:400]
+    data_list=data_list[:200]
     logger=set_logger.setup_logger()
     filter_problems(data_list=data_list,batch_size=batch_size,save=True,save_path=output_path,logger=logger)
 if __name__ == "__main__":

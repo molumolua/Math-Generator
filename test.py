@@ -213,8 +213,8 @@ def main(
     with open(data_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
     random.seed(100)
+    random.shuffle(data_list)
     data_list=data_list[:200]
-    # random.shuffle(data_list)
     # data_list=data_list[2000:2500]
     #preprocess problems
     problems=[]
