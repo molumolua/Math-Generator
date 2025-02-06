@@ -98,7 +98,8 @@ def wrapper(idx_args, func):
     idx, args = idx_args
     res = func(args)
     return idx, res
-
+def get_answer_from_model(prompt,tokenizer,llm,param):
+    return NotImplementedError
 def batch_get_chat_api(examples, eng, pre_fun, post_fun,
                        logger=None, n_processes=4, temperature=0.7, timeout=20, max_try=3, **kwargs):
     """
@@ -118,7 +119,7 @@ def batch_get_chat_api(examples, eng, pre_fun, post_fun,
 
     Returns:
         None
-    """
+    """ 
     get_answer_func = partial(
         get_answer_from_chat_model,
         logger=logger,

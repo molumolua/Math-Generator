@@ -353,3 +353,26 @@ def parse_answer(answer_text, sections, logger):
     except Exception as e:
         logger.error(f"Error in parse_answer: {e}")
         return ("" for _ in sections)
+
+def extract_think_and_after(text):
+    """
+    提取字符串中 <think> 标签内部的内容，以及 </think> 之后的文本。
+
+    参数：
+        text (str): 包含 <think> 标签的完整字符串。
+
+    返回：
+        tuple: (think_content, after_think)
+               think_content 为 <think>...</think> 中的文本（若没匹配到返回 None）。
+               after_think 为 </think> 后的文本（若没匹配到返回 None）。
+    """
+    # 使用正则表达式，启用 DOTALL (re.DOTALL) 使 '.' 能匹配换行符
+    pattern = r"<think>(.*?)</think>(.*)"
+    match = re.search(pattern, text, re.DOTALL)
+    if match:
+        think_content = match.group(1).strip()
+        after_think = match.group(2).strip()
+        return think_content, after_think
+    else:
+        # 如果没有匹配到，就返回 (None, None)
+        return None, None

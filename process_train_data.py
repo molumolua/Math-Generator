@@ -1,6 +1,6 @@
 import os
 import json
-from prompt.prompt_design import createComplexQuestionProcessPrompt
+from prompt.prompt_design import createComplexQuestionProcessPrompt,createComplexQuestionPrompt
 from data.data_loader import load_problems
 def process_train_data(data_list,output_path=None,prompt_type="generate_data",data_type="direct"):
     problems=[]
@@ -16,6 +16,19 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data",da
                         {
                             "role": "assistant",
                             "content": "**Complexification Process**:\n{}\n**Complexified Problem**:\n{}\n\n**Complexified Solution**:\n{}\n".format(data['complexify_process'],data['original_problem'],data['original_solution'])
+                        }
+                    ]
+                }
+            elif prompt_type=="think":
+                problem={
+                    'messages':[
+                        {
+                            "role": "user",
+                            "content": createComplexQuestionPrompt(data['problem'],data['solution'])
+                        },
+                        {
+                            "role": "assistant",
+                            "content": "<think>\n{}\n</think>\n\n**Complexified Problem**:\n{}\n\n**Complexified Solution**:\n{}\n".format(data['complexify_process'],data['original_problem'],data['original_solution'])
                         }
                     ]
                 }
@@ -80,11 +93,11 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data",da
     return problems
 def main():
     now_path="/data/xucaijun/Math-Generator/outputs/outputs_process.json"
-    result_path="/data/xucaijun/Math-Generator/outputs/raw_train_data_process.json"
+    result_path="/data/xucaijun/Math-Generator/outputs/think_train_data_process.json"
     file_path = os.path.join(now_path)
     with open(file_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
-        process_train_data(data_list,output_path=result_path)
+        process_train_data(data_list,output_path=result_path,prompt_type="think")
     # problems = load_problems(iteration=None)
     # process_train_data(data_list,output_path=result_path,prompt_type="test_data_qwen")
 if __name__ =="__main__":

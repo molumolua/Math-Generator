@@ -2,7 +2,7 @@
 
 import os
 import json
-from util.config import TRAINING_DATA_PATH,TRAINING_DATA_PATH_AIME
+from util.config import TRAINING_DATA_PATH,TRAINING_DATA_PATH_AIME,MATH_DATA_PATH
 
 def load_problems(iteration=0,search_keys=None,min_level=None,max_level=None):
     if iteration!=None:
@@ -63,5 +63,28 @@ def load_aime_problems(iteration=0,search_keys=None):
                         'ID':data.get("ID"),
                     }
                     if (not search_keys) or (key in search_keys):
+                        problems.append(problem)
+    return problems
+
+def load_simplify_problems(data_name="MATH", iteration=0):
+    problems = []
+    if data_name == "MATH":
+        if iteration is not None:
+            now_path = MATH_DATA_PATH + "/{}".format(iteration)
+        else:
+            now_path = MATH_DATA_PATH  # test_data
+            
+    if os.path.isdir(now_path):
+        for file_name in os.listdir(now_path):
+            if file_name.endswith('.jsonl'):
+                file_path = os.path.join(now_path, file_name)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        data = json.loads(line)  # Parse each line as a JSON object
+                        problem = {
+                            'problem': data.get('problem'),
+                            'level': data.get('level'),
+                            'solution': data.get('solution'),
+                        }
                         problems.append(problem)
     return problems

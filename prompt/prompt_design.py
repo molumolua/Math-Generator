@@ -294,115 +294,6 @@ def createComparePrompt(problem1, answer1, problem2, answer2):
     prompt +="Please Analysis the relative difficulty between the given problems."
     return prompt
 
-construct_prompt='''
-You are a professional mathematics problem analyst. Your task is to analyze the provided JSON-formatted solution and accurately reconstruct the original mathematical problem. 
-Follow the detailed steps ,and ONLY provide the below four sections in the response to ensure a comprehensive and precise analysis:
-
-1. **Analyze the JSON Structure**:
-    - Carefully read each object within the JSON array.
-    - Examine the "conditions," "method," and "conclusion" fields in each object.
-    - Understand the mathematical concepts and logical reasoning presented in each step.
-
-2. **Extract Key Information**:
-    - Identify the main elements involved (e.g., number of family members, types of family members, objects to be arranged).
-    - Note any specific constraints or requirements (e.g., certain members must be seated next to each other).
-    - Recognize the mathematical methods used (e.g., complementary counting, factorial calculations).
-
-3. **Reconstruct the Problem Statement**:
-    - Integrate the extracted information into a coherent and complete problem statement.
-    - Ensure that all necessary conditions and requirements are included.
-    - Use clear and formal language appropriate for a practice problem.
-    - ONLY ask one question based on the final conclusion in the solution.
-
-4. **Verify Consistency and Completeness**:
-    - Ensure that the reconstructed problem encompasses all conditions, methods, and conclusions presented in the JSON solution.
-    - Confirm that the problem's answer aligns with the conclusions derived in the JSON.
-
-Please perform the analysis based on the following JSON solution and provide the original mathematical problem statement as specified:
-
-[
-    {
-        "conditions": [
-            "The Smith family consists of 4 sons.",
-            "The Smith family consists of 3 daughters.",
-            "There are 7 chairs arranged in a row.",
-            "At least 2 boys must be seated next to each other."
-        ],
-        "method": "Using complementary counting to focus on counting the arrangements where no two boys are next to each other, which simplifies the problem. Considering one possible arrangement (BGBGBGB) where no two boys are adjacent.",
-        "conclusion": "Only one arrangement (BGBGBGB) ensures no two boys are adjacent."
-    },
-    {
-        "conditions": [
-            "Only one arrangement (BGBGBGB) ensures no two boys are adjacent."
-        ],
-        "method": "Calculate the factorial of the number of boys and girls for the specific arrangement BGBGBGB. That is $4!$ for boys and $3!$ for girls.",
-        "conclusion": "Total seating arrangements for BGBGBGB is $4! \\times 3! = 144$."
-    },
-    {
-        "conditions": [
-            "The Smith family consists of 4 sons.",
-            "The Smith family consists of 3 daughters.",
-            "There are 7 chairs arranged in a row.",
-            "Total seating arrangements for BGBGBGB is $4! \\times 3! = 144$."
-        ],
-        "method": "Calculate the total number of unrestricted seating arrangements for all 7 children, and subtract the unwanted seating arrangements (where no two boys are next to each other) from it. Total unrestricted arrangements calculated by $7!$.",
-        "conclusion": "Desired seating arrangements with at least two boys next to each other is $7! - (4! \\times 3!) = 5040-144 = 4896."
-    }
-]
-'''
-base_instructionV2 = """
-You are a mathematics expert specializing in simplifying math problems.
-
-Your task is to transform the **Original Problem** into a slightly simpler, more accessible version by focusing on its **solution**. You will simplify the problem by deleting certain initial conditions or peripheral information, allowing the solution to start from an intermediate conclusion, while ensuring the problem remains **correct and solvable** and that the original question and final conclusion are preserved.
-
-Follow these steps to do it:
-
-1. **Analyze Original Solution**:
-   - Identify the key concepts and techniques used in the **Original Solution**, step by step.
-   - Recognize the initial conditions or peripheral information that can be removed or omitted, allowing the solution to begin from an intermediate result.
-
-2. **Simplification Process**:
-   - **Start from Intermediate Conclusion**: Modify the problem so that it provides an intermediate conclusion or result from which the solver can continue to reach the final answer.
-   - **Delete Non-Essential Information**: Identify and remove specific initial conditions or peripheral information from the problem that are not essential for reaching the final conclusion if we **start from Intermediate Conclusion**.
-   - Ensure that by removing these elements, the problem remains **consistent**, **mathematically sound**, and the **final conclusion** remains unchanged.
-
-3. **Present the Simplified Problem and Solution**:
-   - **Simplified Problem**:
-     - Rewrite the problem based on the simplified approach, ensuring that the problem starts from the intermediate conclusion.
-     - Exclude the deleted initial conditions or peripheral information from the problem.
-   - **Simplified Solution**:
-     - Provide a clear, correct solution that begins from the intermediate conclusion provided in the simplified problem.
-     - Ensure the solution logically leads to the original final conclusion without requiring the deleted initial conditions or peripheral information.
-
-**Format Requirements**:
-- Use a numbered list for the sections as shown below.
-- Use bold formatting for each section title.
-- Do **not** use markdown headings (e.g., ###) or any other formatting styles.
-- Ensure that the final answer is enclosed in a LaTeX boxed format.
-
-**Constraints**:
-- The simplified problem must remain mathematically sound and consistent with the original problem type.
-- The simplification must focus on removing specific initial conditions or peripheral information to reduce the complexity of the problem-solving process.
-- The simplified problem and solution should both be clear, complete, and logical, maintaining the integrity of the original question and final conclusion.
-
-**Provide**:
-1. **Analyze Original Solution**:
-   - List the mathematical ideas and techniques from the **Original Solution**, step by step.
-2. **Simplification Process**:
-   - Explain which initial conditions or peripheral information were deleted and how the problem now starts from an intermediate conclusion.
-3. **Simplified Problem**:
-   - Present the simplified version of the original problem, reflecting the removal of initial conditions or peripheral information and the introduction of the intermediate conclusion.
-4. **Simplified Solution**:
-   - Offer a step-by-step solution to the simplified problem starting from the intermediate conclusion and leading to the final answer.
-   - Output the answer in the LaTeX boxed format.
-"""
-        
-def createSimpleQuestionPromptV2(problem, solution):
-    prompt = base_instructionV2
-    prompt += "\n\n**Original Problem**:\n{}\n".format(problem)
-    prompt += "\n**Original Solution**:\n{}\n".format(solution)
-    return prompt
-
 base_instructionV3 = """
 You are a mathematics expert specializing in simplifying math problems.
 
@@ -419,11 +310,11 @@ Please provide the following sections in your answer:
    - Provide the **revised** problem statement **without any introductory or explanatory sentences**.
 
 3. **Simplified Solution**:
-   - Present the simplified solution in a logical sequence, ensuring the format is similar to the **original solution**.
+   - Present the simplified solution in a logical sequence, ensuring the correctness.
 
 **Format Requirements**:
 - Use **bold** formatting for each section title.
-- Ensure that the final answer is enclosed in a LaTeX boxed format containing **only the numerical value**.
+- Ensure that the final answer is enclosed within \\boxed{{}}.
 
 **Constraints**:
 - **Ensure that the simplified problem has a unique answer**.
@@ -437,67 +328,8 @@ def createSimpleQuestionPromptV3(problem, solution):
     return prompt
  
  
-base_instructionV4 = """
-You are a mathematics expert specializing in simplifying math problems.
-
-Your task is to transform the **Original Problem** into a slightly simpler, more accessible version by focusing on its **sub-conclusion** derived directly from the **given conditions** and the **Original Solution**.
-
-Follow these steps to do it:
-
-1. **Analyze Original Solution**:
-   - Identify the key mathematical ideas, techniques, and steps used in the **Original Solution**.
-   - Determine the  sub-conclusion from these steps, ensuring it is reached primarily from the provided initial conditions and direct logic—rather than deriving it from the final conclusion.
-   - Note any explicit or implicit relationships among variables or constants that are necessary for deriving this  sub-conclusion.
-
-2. **Simplification Process**:
-   - **Extract Maximal Sub-Conclusion**: Use the identified sub-conclusion as the question in **Simplified Problem** (i.e., the most substantial intermediate result necessary before reaching the final conclusion).
-   - **Retain Essential Conditions**: Preserve any conditions strictly necessary to maintain the correctness and solvability of the problem at the level of the sub-conclusion.
-   - Ensure the problem remains **consistent** and **mathematically sound** by focusing on the sub-conclusion and removing only non-essential elements.
-
-3. **Present the Simplified Problem and Solution**:
-   - **Simplified Problem**:
-     - Formulate the question based on the newly identified sub-conclusion.
-     - Ensure that the problem is clearly stated, leaving no room for misinterpretation.
-     - Present **only one** single, clear mathematical question asking for ONLY one object.
-   - **Simplified Solution**:
-     - Provide a concise, correct solution that starts from conditions in **Simplified Problem**.
-        
-
-**Format Requirements**:
-- Use a numbered list for the sections as shown above.
-- Use **bold formatting** for each section title.
-- Do **not** use markdown headings (e.g., ###) or any other formatting styles.
-- Ensure that the final answer is enclosed in a LaTeX boxed format.
-- Ensure that the **Simplified Problem** asks only one question.
-
-**Constraints**:
-- The simplified problem must remain mathematically sound and consistent with the original problem type.
-- The simplification must focus on extracting the  sub-conclusion that emerges directly from the given conditions (not from the final or a secondary conclusion) and removing only non-essential elements.
-- **Do not remove any initial conditions that are essential for deriving the sub-conclusion, including any necessary relationships among variables or constants.**
-- The simplified problem and solution should both be clear, complete, and logical, preserving the integrity of the original question.
-- The sub-conclusion must be sufficient to generate a reasonable, stand-alone mathematical problem.
-
-**Provide**:
-1. **Analyze Original Solution**:
-   - List the mathematical ideas and techniques from the **Original Solution** in the order they appear, highlighting where any variables or constants are introduced or used.
-2. **Simplification Process**:
-   - Explain which initial conditions or details were removed and why.
-   - Emphasize how the problem now focuses on the sub-conclusion derived from the original conditions, ensuring any necessary relationships remain.
-3. **Simplified Problem**:
-   - State the simplified version of the original problem, showing how the necessary variables, constants, and their interrelations remain properly defined.
-4. **Simplified Solution**:
-   - Give the solution steps starting at the sub-conclusion and making use of any required relationships.
-   - End with the final answer in **only one** LaTeX boxed format.
-"""
-        
-def createSimpleQuestionPromptV4(problem, solution):
-    prompt = base_instructionV4
-    prompt += "\n\n**Original Problem**:\n{}\n".format(problem)
-    prompt += "\n**Original Solution**:\n{}\n".format(solution)
-    return prompt
-
 def createAnsqerPrompt(problem):
-   return f"Problem: {problem}\nProvide a detailed solution and Output the final number of the answer in the latex boxed format."
+   return f"{problem}\nPlease reason step by step,and put your final answer within \\boxed{{}}"
 
 
 complexification_prompt = """
@@ -516,15 +348,11 @@ Please provide the following sections in your answer:
    - Provide the **revised** problem statement **without any introductory or explanatory sentences**.
 
 3. **Complexified Solution**:
-   - Present the complexified solution in a logical sequence, ensuring that you demonstrate the use of the more advanced concepts or techniques introduced in the new problem statement.
+   - Present the complexified solution in a logical sequence, ensuring the correctness.
 
 **Format Requirements**:
 - Use **bold** formatting for each section title.
-- Ensure that the final answer is enclosed in a LaTeX boxed format containing **only the numerical value**.
-  
-**Constraints**:
-- **Ensure that the complexified problem has a unique and challenging answer**.
-- **You must change the wording or structure of the original problem statement** enough to reflect the more advanced approach.
+- Ensure that the final answer is enclosed within \\boxed{{}}.
 """
 
 complexification_prompt_noprocess = """
@@ -538,15 +366,8 @@ Please provide the following sections in your answer:
    - Provide the **revised** problem statement **without any introductory or explanatory sentences**.
 
 2. **Complexified Solution**:
-   - Present the complexified solution in a logical sequence, ensuring that you demonstrate the use of the more advanced concepts or techniques introduced in the new problem statement.
-
-**Format Requirements**:
-- Use **bold** formatting for each section title.
-- Ensure that the final answer is enclosed in a LaTeX boxed format containing **only the numerical value**.
-
-**Constraints**:
-- **Ensure that the complexified problem has a unique and challenging answer**.
-- **You must change the wording or structure of the original problem statement** enough to reflect the more advanced approach.
+   - Present the complexified solution in a logical sequence, ensuring the correctness.
+   - Ensure that the final answer is enclosed within \\boxed{{}}.
 """
 
 
@@ -609,4 +430,83 @@ def createAddProcessPrompt_2(problem_1, solution_1,problem_2,solution_2):
     prompt += "\n**Original Solution**:\n{}\n".format(solution_1)
     prompt += "\n**Simplified Problem**:\n{}\n".format(problem_2)
     prompt += "\n**Simplified Solution**:\n{}\n".format(solution_2)
+    return prompt
+
+
+add_think_prompt = '''
+Supposing you have alreadly get input and output after the <think></think>,  supply content in the <think></think>.
+'''
+
+
+def createAddThinkPrompt(problem_1, solution_1,problem_2,solution_2):
+    prompt = add_think_prompt
+    prompt += "\n\n### Input:\n{}\n".format(createComplexQuestionPrompt(problem_1,solution_1))
+    prompt += "\n\n### Output:"
+    prompt += "\n**Complexified Problem**:\n{}\n".format(problem_2)
+    prompt += "\n**Complexified Solution**:\n{}\n".format(solution_2)
+    return prompt
+
+
+base_instruction_think = """
+You are a mathematics expert specializing in simplifying math problems.
+
+Your task is to transform the **Original Problem** into a more accessible version by simplifying core mathematical concepts or techniques used in **Original Solution**.
+
+** Simplification Criteria**:
+- Break down the original solution and identify significant core concepts or techniques that can be simplified, replaced, or deleted to generate a new problem.
+- Clearly explain how you are reducing complexity or using more basic methods.
+- Adjust the original problem statement to align with the simplified approach.
+
+Please provide the following sections in your answer:
+   
+1. **Simplified Problem**:
+   - Provide the **revised** problem statement **without any introductory or explanatory sentences**.
+
+2. **Simplified Solution**:
+   - Present the simplified solution in a logical sequence, ensuring the correctness.
+
+**Format Requirements**:
+- Use **bold** formatting for each section title.
+- Ensure that the final answer is enclosed within \\boxed{{}}.
+
+**Constraints**:
+- Ensure that the simplified problem has a unique answer.
+- Must generate one different problem to reflect the simpler approach.
+"""
+
+def createThinkSimpleQuestionPrompt(problem, solution):
+    prompt = base_instruction_think
+    prompt += "\n\n**Original Problem**:\n{}\n".format(problem)
+    prompt += "\n**Original Solution**:\n{}\n".format(solution)
+    return prompt
+
+
+
+compare_think_prompt='''
+You are an expert in evaluating and comparing mathematical problems based on their difficulty.
+
+Your task is to assess the relative difficulty between two given problems by analyzing their descriptions and solutions.
+
+**Comparison Criteria**:
+
+- Analyze how intricate and involved each problem is.
+- Examine the mathematical operations and techniques required.
+- Consider the foundational knowledge needed to approach each problem.
+- Assess the overall challenge in finding a solution.
+
+Please only provide **one** of the following conclusion in your answer:
+   
+- `"former one is harder."` if **Problem 1** is harder than **Problem 2**.
+- `"later one is harder."` if **Problem 2** is harder than **Problem 1**.
+- `"comparable"` if both problems have similar difficulty levels.
+'''
+
+def createCompareThinkPrompt(problem1, answer1, problem2, answer2):
+    """
+    将给定的两个问题与答案插入到 compare_prompt 中，并返回完整的 Prompt。
+    """
+    prompt = compare_think_prompt
+    prompt += f"\n**Problem 1**: {problem1}\n**Solution 1**: {answer1}\n"
+    prompt += f"\n**Problem 2**: {problem2}\n**Solution 2**: {answer2}\n"
+    prompt +="Please Analysis the relative difficulty between the given problems."
     return prompt
