@@ -268,6 +268,29 @@ def main(
         with open(output_path, 'w', encoding='utf-8') as output_json:
             json.dump(output_list, output_json, ensure_ascii=False, indent=4)
         logger.info(f"Batch {batch + 1},Total {len(output_list)}/{min(len(problems),(batch+1)*batch_size)} has been left.")
+def add_newlines_after_think(text: str) -> str:
+    """
+    在给定字符串的每个 `</think>` 后插入两个换行符。
 
+    :param text: 原始字符串
+    :return: 替换后的字符串
+    """
+    return text.replace("</think>", "</think>\n\n")
+def main_3(
+        data_path="/data/xucaijun/Math-Generator/outputs/newprompt_complex_question_process_deepseek.json",
+        batch_size=128):
+    with open(data_path, 'r', encoding='utf-8') as f:
+        data_list = json.load(f)
+    data_list=data_list
+    #preprocess problems
+    logger=set_logger.setup_logger()
+    for data in data_list: 
+        data['response']=add_newlines_after_think(data['response'])
+        data['complex_problem'],data['complex_solution']= util.parse_answer(data['response'], 
+                                                                            ["Complexified Problem", 
+                                                                            "Complexified Solution"], 
+                                                                            logger=logger)
+    with open(data_path, 'w', encoding='utf-8') as output_json:
+        json.dump(data_list, output_json, ensure_ascii=False, indent=4)
 if __name__ == "__main__":
-    main()
+    main_3()
