@@ -24,7 +24,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          device="cuda",
          input_path=None,
          output_path="./outputs/newprompt_complex_question_process_deepseek.json",
-         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/Think-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
+         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/NewThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
 
