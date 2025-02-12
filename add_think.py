@@ -68,7 +68,7 @@ def add_think(model,tokenizer,logger,problems,stop_words = ["</s>", "<｜Assista
         # add think
         input_texts = [
                 tokenizer.apply_chat_template(
-                        [{"role": "user", "content":createAddThinkPrompt(example['problem'],example['solution'],example['original_problem'],example['original_solution'])}],
+                        [{"role": "user", "content":createAddThinkPrompt(example['think'],example['problem'],example['solution'],example['original_problem'],example['original_solution'])}],
                         tokenize=False,
                         add_generation_prompt=True,
                 )
