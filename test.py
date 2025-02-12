@@ -150,6 +150,8 @@ from util.util import parse_answer
 from prompt.prompt_design import createAnsqerPrompt,createComparePrompt
 import math
 import random
+from data.data_loader import load_simplify_problems
+from prompt.openai_access import get_oai_completion
 def pre_reject_fun(example):
     return createAnsqerPrompt(example['problem'])
 
@@ -292,5 +294,43 @@ def main_3(
                                                                             logger=logger)
     with open(data_path, 'w', encoding='utf-8') as output_json:
         json.dump(data_list, output_json, ensure_ascii=False, indent=4)
+def main_4(
+        data_path_2="/data/xucaijun/Math-Generator/outputs/newprompt_fliter_complex_question_process_deepseek.json",
+        output_path="./outputs/rawMATH_800.json"):
+    data_list_1=load_simplify_problems(iteration=0)
+    with open(data_path_2, 'r', encoding='utf-8') as f:
+        data_list_2 = json.load(f)
+    output_list=[]
+    for data_2 in data_list_2:
+        for data_1 in data_list_1:
+            if data_2['original_problem'] == data_1['problem']:
+                output_list.append(data_1)
+    with open(output_path, 'w', encoding='utf-8') as output_json:
+        json.dump(output_list, output_json, ensure_ascii=False, indent=4)
+
 if __name__ == "__main__":
-    main_3()
+    # # main_4()
+    # from collections import defaultdict
+
+    # # 示例数据
+    # data = [
+    #     {'original_problem': 'problem1', 'other_attr': 1},
+    #     {'original_problem': 'problem2', 'other_attr': 2},
+    #     {'original_problem': 'problem1', 'other_attr': 3},
+    #     {'original_problem': 'problem3', 'other_attr': 4},
+    #     {'original_problem': 'problem2', 'other_attr': 5}
+    # ]
+
+    # # 使用 defaultdict 来聚合
+    # grouped = defaultdict(list)
+
+    # # 遍历数据，将相同 original_problem 的 dict 聚集在一起
+    # for item in data:
+    #     grouped[item['original_problem']].append(item)
+
+    # # 转换成二维 list
+    # result = list(grouped.values())
+
+    # # 输出结果
+    # print(result)
+    print(get_oai_completion("你是谁？","deepseek-r1",0.7))

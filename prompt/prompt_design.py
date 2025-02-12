@@ -434,16 +434,26 @@ def createAddProcessPrompt_2(problem_1, solution_1,problem_2,solution_2):
 
 
 add_think_prompt = '''
-Supposing you have alreadly get input and output after the <think></think>,  supply content in the <think></think>.
+You are a mathematics expert tasked with increasing the complexity of a given problem.
+
+Supposing you have alreadly transfromed the **Original Problem** into **Complexified Problem**, your task is to supply the think process of complification.
+
+**Reversed Think** is the reversed version of your output, and you should use it as the guide of format and content.
+
+Specifically, your output should include the following:
+- Break down the original solution and identify opportunities to introduce more advanced concepts.
+- Clearly explain how you are increasing the complexity by adding these techniques or ideas.
+- Provide the method how to adjust the original problem statement to reflect the more sophisticated approach.
 '''
 
 
-def createAddThinkPrompt(problem_1, solution_1,problem_2,solution_2):
+def createAddThinkPrompt(reversed_think,problem_1, solution_1,problem_2,solution_2):
     prompt = add_think_prompt
-    prompt += "\n\n### Input:\n{}\n".format(createComplexQuestionPrompt(problem_1,solution_1))
-    prompt += "\n\n### Output:"
+    prompt += "\n\n**Original Problem**:\n{}\n".format(problem_1)
+    prompt += "\n**Original Solution**:\n{}\n".format(solution_1)
     prompt += "\n**Complexified Problem**:\n{}\n".format(problem_2)
     prompt += "\n**Complexified Solution**:\n{}\n".format(solution_2)
+    prompt += "\n**Reversed Think**:\n{}\n".format(reversed_think)
     return prompt
 
 
@@ -494,7 +504,7 @@ Your task is to assess the relative difficulty between two given problems by ana
 - Consider the foundational knowledge needed to approach each problem.
 - Assess the overall challenge in finding a solution.
 
-Please only provide **one** of the following conclusion in your answer:
+Please provide **one** of the following conclusion in your answer:
    
 - `"former one is harder."` if **Problem 1** is harder than **Problem 2**.
 - `"later one is harder."` if **Problem 2** is harder than **Problem 1**.
@@ -506,6 +516,36 @@ def createCompareThinkPrompt(problem1, answer1, problem2, answer2):
     将给定的两个问题与答案插入到 compare_prompt 中，并返回完整的 Prompt。
     """
     prompt = compare_think_prompt
+    prompt += f"\n**Problem 1**: {problem1}\n**Solution 1**: {answer1}\n"
+    prompt += f"\n**Problem 2**: {problem2}\n**Solution 2**: {answer2}\n"
+    prompt +="Please Analysis the relative difficulty between the given problems."
+    return prompt
+
+
+compare_think_prompt_test='''
+You are an expert in evaluating and comparing mathematical problems based on their difficulty.
+
+Your task is to assess the relative difficulty between two given problems by analyzing their descriptions and solutions.
+
+**Comparison Criteria**:
+
+- Analyze how intricate and involved each problem is.
+- Examine the mathematical operations and techniques required.
+- Consider the foundational knowledge needed to approach each problem.
+- Assess the overall challenge in finding a solution.
+
+Please only provide **one** of the following conclusion in your answer:
+   
+- `"former one is harder."` if **Problem 1** is harder than **Problem 2**.
+- `"later one is harder."` if **Problem 2** is harder than **Problem 1**.
+- `"tie"` if both problems have equal difficulty levels.
+'''
+
+def createDetailedCompareThinkPrompt(problem1, answer1, problem2, answer2):
+    """
+    将给定的两个问题与答案插入到 compare_prompt 中，并返回完整的 Prompt。
+    """
+    prompt = compare_think_prompt_test
     prompt += f"\n**Problem 1**: {problem1}\n**Solution 1**: {answer1}\n"
     prompt += f"\n**Problem 2**: {problem2}\n**Solution 2**: {answer2}\n"
     prompt +="Please Analysis the relative difficulty between the given problems."

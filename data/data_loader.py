@@ -87,4 +87,7 @@ def load_simplify_problems(data_name="MATH", iteration=0):
                             'solution': data.get('solution'),
                         }
                         problems.append(problem)
+            elif file_name.endswith(".json"):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    problems = json.load(f)
     return problems

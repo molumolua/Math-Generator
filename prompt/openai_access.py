@@ -1,33 +1,76 @@
 from openai import OpenAI
 import openai
 import time
-from util.config import OPENAI_API_KEY
+from util.config import OPENAI_API_KEY,BASE_URL
 import os
 import time
 import logging
 from functools import partial
 from multiprocessing import Pool
 from tqdm import tqdm
-client = OpenAI(api_key=OPENAI_API_KEY)
-def get_oai_completion(prompt,model,temperature):
+client = OpenAI(base_url=BASE_URL,api_key=OPENAI_API_KEY)
+def get_oai_completion(prompt,model,temperature,think=False,stream=True):
     try:
         response = client.chat.completions.create(
             model=model,
             temperature=temperature,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                # {"role": "system", "content": "You are a helpful assistant."},
                 {
                     "role": "user",
                     "content": prompt
                 }
-            ]
+            ],
+            stream=stream
         )
+        if stream:
+            answer=stream_get_answer(response)
+            # print(answer)
+            return answer
+        # print(response)
         answer = response.choices[0].message.content
+        # print(f"answer:{answer}")
+        if think:
+            think_answer=response.choices[0].message.reasoning_content
+            return answer,think_answer
         return answer
     except Exception as e:
         print(f"Error fetching answer: {e}")
         return None
+def stream_get_answer(stream):
+    reasoning_content=""
+    answer_content=""
+    is_answering=False
+    for chunk in stream:
+        # 处理usage信息
+        if not getattr(chunk, 'choices', None):
+            print("\n" + "=" * 20 + "Token 使用情况" + "=" * 20 + "\n")
+            print(chunk.usage)
+            continue
 
+        delta = chunk.choices[0].delta
+
+        # 检查是否有reasoning_content属性
+        if not hasattr(delta, 'reasoning_content'):
+            continue
+
+        # 处理空内容情况
+        if not getattr(delta, 'reasoning_content', None) and not getattr(delta, 'content', None):
+            continue
+
+        # 处理开始回答的情况
+        if not getattr(delta, 'reasoning_content', None) and not is_answering:
+            is_answering = True
+
+        # 处理思考过程
+        if getattr(delta, 'reasoning_content', None):
+            # print(delta.reasoning_content, end='', flush=True)
+            reasoning_content += delta.reasoning_content
+        # 处理回复内容
+        elif getattr(delta, 'content', None):
+            # print(delta.content, end='', flush=True)
+            answer_content += delta.content
+    return "<think>\n"+reasoning_content+"\n</think>\n\n"+answer_content
 def call_chatgpt(prompt,model):
     success = False
     re_try_count = 10
@@ -43,7 +86,7 @@ def call_chatgpt(prompt,model):
     return ans
 
 
-def get_answer_from_chat_model(prompt, logger=None, eng='gpt-3.5-turbo', temperature=0.0, timeout=20, max_try=3):
+def get_answer_from_chat_model(prompt, logger=None, eng='gpt-3.5-turbo', temperature=0.0, timeout=20, max_try=3,think=False):
     """
     向聊天模型发送单个请求，并返回回答。
 
@@ -59,8 +102,8 @@ def get_answer_from_chat_model(prompt, logger=None, eng='gpt-3.5-turbo', tempera
         str: 模型的回答。
     """
     if eng not in [
-        "gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k-0613",
-        "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-3.5-turbo-1106","gpt-4o"
+        "gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k-0613","deepseek-reasoner",
+        "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-3.5-turbo-1106","gpt-4o","deepseek-ai/DeepSeek-R1","deepseek-r1"
     ]:
         raise ValueError(f"Unsupported model: {eng}")
 
@@ -69,17 +112,16 @@ def get_answer_from_chat_model(prompt, logger=None, eng='gpt-3.5-turbo', tempera
 
     while not is_success:
         if max_try > 0 and num_exception >= max_try:
-            logger.error(f"Max retries reached for question: {q}") if logger else None
+            logger.error(f"Max retries reached for question: {prompt}") if logger else None
             return ""
         try:
-            response = get_oai_completion(prompt,eng,temperature)
-            return response
+            return  get_oai_completion(prompt,eng,temperature,think)
         except Exception as e:
             num_exception += 1
             sleep_time = min(num_exception, 2)
             if logger:
                 is_print_exc = num_exception % 10 == 0
-                logger.error(f"Exception for question '{q}': {e}", exc_info=is_print_exc)
+                logger.error(f"Exception for question '{prompt}': {e}", exc_info=is_print_exc)
                 logger.info(f"Retry {num_exception}/{max_try} after sleeping for {sleep_time} seconds.")
             time.sleep(sleep_time)
             is_success = False
@@ -101,7 +143,7 @@ def wrapper(idx_args, func):
 def get_answer_from_model(prompt,tokenizer,llm,param):
     return NotImplementedError
 def batch_get_chat_api(examples, eng, pre_fun, post_fun,
-                       logger=None, n_processes=4, temperature=0.7, timeout=20, max_try=3, **kwargs):
+                       logger=None, n_processes=4, temperature=0.7, timeout=20, max_try=3,think=False, **kwargs):
     """
     批量处理聊天模型的 API 请求。
 
@@ -127,6 +169,7 @@ def batch_get_chat_api(examples, eng, pre_fun, post_fun,
         temperature=temperature,
         timeout=timeout,
         max_try=max_try,
+        think=think,
         **kwargs
     )
 

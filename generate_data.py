@@ -14,12 +14,25 @@ from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from filter_problems import filter_problems
 from process_train_data import process_train_data
+from self_filter import self_filter
+from collections import defaultdict
 
+def process_output_data(data_list):
+    # 使用 defaultdict 来聚合
+    grouped = defaultdict(list)
 
+    # 遍历数据，将相同 original_problem 的 dict 聚集在一起
+    for item in data_list:
+        grouped[item['original_problem']].append(item)
+
+    # 转换成二维 list
+    result = list(grouped.values())
+    return result
 def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complexification Process**"],
          max_tokens=32768,
-         max_try=3,
-         enable_filter=False,
+         N=5,
+         batch_size=512,
+         enable_filter=True,
          use_chat_templete=True,
          device="cuda",
          input_path=None,
@@ -52,16 +65,16 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
         max_tokens=max_tokens,
         temperature=0.7,
         stop=stop_words,
-        n=1
+        n=N
     )
-
     # Apply_chat_template
-    output_list = []
-    now_problems = problems
-    for _ in range(max_try):
-        if len(now_problems)==0:
-            break
-        logger.info(f"{len(now_problems)} problems for {_} th try generating data...")
+    total_list= []
+    total_batch=math.ceil(len(problems)/batch_size)
+    for batch in range(total_batch):
+        output_list = []
+        now_problems = problems[batch*batch_size:(batch+1)*batch_size]
+        logger.info(f"Start Batch {batch}")
+        logger.info(f"{len(now_problems)} problems for generating data...")
         if use_chat_templete:
             input_texts = [
                 tokenizer.apply_chat_template(
@@ -79,36 +92,36 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
                 for problem in now_problems
             ]
         logger.info(input_texts[0])
+                
             
-        
         # Generate responses using vLLM
         logger.info("Generating responses...")
-        generated_responses = model.generate(input_texts, sampling_params=sampling_params)
-        generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
+        tmp_responses = model.generate(input_texts, sampling_params=sampling_params)
+        tmp_responses = [[tmp_response.outputs[i].text for i in range(N)] for tmp_response in tmp_responses]
         # Process the generated responses
-        for problem, response in zip(now_problems, generated_responses):
-            complex_problem, complex_solution = util.parse_answer(response, 
-                                                                            [
-                                                                            "Complexified Problem", 
-                                                                            "Complexified Solution"], 
-                                                                            logger=logger)
-            output_object = {
-                "original_problem": problem['problem'],
-                "original_solution": problem['solution'],
-                "complex_problem": complex_problem,
-                "complex_solution": complex_solution,
-                "response": response
-            }
-            output_list.append(output_object)
+        for problem, responses in zip(now_problems, tmp_responses):
+            for response in responses:
+                complex_problem, complex_solution = util.parse_answer(response, 
+                                                                        [
+                                                                        "Complexified Problem", 
+                                                                        "Complexified Solution"], 
+                                                                        logger=logger)
+                output_object = {
+                    "original_problem": problem['problem'],
+                    "original_solution": problem['solution'],
+                    "complex_problem": complex_problem,
+                    "complex_solution": complex_solution,
+                    "response": response
+                }
+                output_list.append(output_object)
         if enable_filter:
-            output_list,now_problems=filter_problems(data_list=output_list,logger=logger)
-        else:
-            now_problems=[]
-
+            output_list=self_filter(model,tokenizer,output_list,logger,batch_size=N*batch_size)
+        output_list=process_output_data(output_list)
         # Save the output to a JSON file
+        total_list+=output_list
         logger.info(f"Saving output to {output_path}...")
         with open(output_path, 'w', encoding='utf-8') as output_json:
-            json.dump(output_list, output_json, ensure_ascii=False, indent=4)
+            json.dump(total_list, output_json, ensure_ascii=False, indent=4)
 
     logger.info("Process completed.")
 
