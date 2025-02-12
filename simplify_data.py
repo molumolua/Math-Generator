@@ -19,6 +19,7 @@ from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from util import util, set_logger
 from add_think import add_think
+from util.util import extract_think_and_after
 def save_problems_to_jsonl(file_name,problems, iteration,logger):
     """
     参数:
@@ -83,7 +84,8 @@ def post_fun(example, reply):
 def process_problem(problem, response,sections, logger):
     try:
         if problem and response:
-            parsed_problem, parsed_solution = util.parse_answer(response, sections, logger)
+            think,content=extract_think_and_after(response)
+            parsed_problem, parsed_solution = util.parse_answer(content, sections, logger)
             if parsed_problem and parsed_solution:
                 # logger.info(f"Successfully parsed problem: {problem['file_name']}")
                 return {
@@ -91,7 +93,7 @@ def process_problem(problem, response,sections, logger):
                     "original_solution": problem['solution'],
                     "problem": parsed_problem,
                     "solution": parsed_solution,
-                    "response":response
+                    "think":think
                 }
             else:
                 logger.warning(f"Parsed problem or solution is empty.")
@@ -274,8 +276,8 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
 
                 done_problems +=compared_problems
                 done_keys +=[problem["original_problem"] for problem in compared_problems]
-                save_problems_to_json("train_data.json",done_problems,iteration+1,logger)
-                save_problems_to_jsonl("train_data.jsonl",done_problems,iteration+1,logger)
+                save_problems_to_json("simplify_problem.json",done_problems,iteration+1,logger)
+                # save_problems_to_jsonl("train_data.jsonl",done_problems,iteration+1,logger)
                 
             logger.info(f"Iteration {iteration + 1} completed,Total {len(done_problems)}/{len(problems)} has been simplified.")
         except Exception as e:
