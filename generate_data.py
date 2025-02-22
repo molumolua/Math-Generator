@@ -16,6 +16,7 @@ from filter_problems import filter_problems
 from process_train_data import process_train_data
 from self_filter import self_filter
 from collections import defaultdict
+from util.util import extract_think_and_after
 
 def process_output_data(data_list):
     # 使用 defaultdict 来聚合
@@ -28,16 +29,22 @@ def process_output_data(data_list):
     # 转换成二维 list
     result = list(grouped.values())
     return result
+def process_problem(problem):
+    think,solution=extract_think_and_after(problem['output'])
+    return {
+        "problem":problem['problem'],
+        "solution":solution
+    }
 def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complexification Process**"],
          max_tokens=32768,
-         N=5,
-         batch_size=512,
+         N=3,
+         batch_size=-1,
          enable_filter=True,
          use_chat_templete=True,
          device="cuda",
-         input_path=None,
-         output_path="./outputs/newprompt_complex_question_process_deepseek.json",
-         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/NewThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
+         input_path="/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json",
+         output_path="./outputs/second_iter_deepseek_answer.json",
+         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/SelfThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
 
@@ -46,14 +53,23 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
     if input_path:
         with open(input_path, 'r', encoding='utf-8') as f:
             problems = json.load(f)
+            if input_path == "/data/xucaijun/New/Math-Generator/outputs/math_output_deepseek.json":
+                problems=[ problem for problem in problems if problem['value']==True]
+                problems =[process_problem(problem) for problem in problems ]
+            elif input_path == '/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json':
+                data_list=[]
+                for data in problems:
+                    data_list.append({
+                        'problem':data[0]['complex_problem'],
+                        'solution':data[0]['complex_solution']})
+                problems=data_list
     else:
         problems = load_simplify_problems()
-    problems= problems
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
-    model = LLM(model_name_or_path, device=device,tensor_parallel_size=8)
+    model = LLM(model_name_or_path, device=device,tensor_parallel_size=8,enforce_eager=False,gpu_memory_utilization=0.95)
     if use_chat_templete:
         tokenizer = AutoTokenizer.from_pretrained(
                     model_name_or_path, trust_remote_code=True
@@ -68,6 +84,8 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
         n=N
     )
     # Apply_chat_template
+    if batch_size==-1:
+        batch_size=len(problems)
     total_list= []
     total_batch=math.ceil(len(problems)/batch_size)
     for batch in range(total_batch):
