@@ -10,7 +10,7 @@ from multiprocessing import Pool
 from tqdm import tqdm
 from prompt.openai_access import batch_get_chat_api, get_oai_completion
 from prompt.prompt_design import createComparePrompt, createSimpleQuestionPromptV3, createAnsqerPrompt,createThinkSimpleQuestionPrompt,createCompareThinkPrompt
-from util.config import TRAINING_DATA_PATH, OUTPUT_PATH, TRAINING_DATA_PATH_AIME,MATH_DATA_PATH
+from util.config import TRAINING_DATA_PATH, OUTPUT_PATH, TRAINING_DATA_PATH_AIME,MATH_DATA_PATH,DEEPSEEK_DATA_PATH
 from data.data_loader import load_simplify_problems
 from util.util import reject_sample
 import openai
@@ -26,7 +26,7 @@ def save_problems_to_jsonl(file_name,problems, iteration,logger):
     problems: 列表，其中每个元素都是一个字典
     file_path: 输出文件的路径，通常以 .jsonl 结尾
     """
-    now_path = os.path.join(MATH_DATA_PATH, str(iteration))
+    now_path = os.path.join(DEEPSEEK_DATA_PATH, str(iteration))
     os.makedirs(now_path, exist_ok=True)
     file_path = os.path.join(now_path, file_name)
     with open(file_path, 'w', encoding='utf-8') as f:
@@ -42,7 +42,7 @@ def save_problems_to_json(file_name,problems, iteration,logger):
     problems: 列表，其中每个元素都是一个字典
     file_path: 输出文件的路径，通常以 .json 结尾
     """
-    now_path = os.path.join(MATH_DATA_PATH, str(iteration))
+    now_path = os.path.join(DEEPSEEK_DATA_PATH, str(iteration))
     os.makedirs(now_path, exist_ok=True)
     file_path = os.path.join(now_path, file_name)
     logger.info(f"Saved answer to {file_path}")
@@ -93,7 +93,7 @@ def process_problem(problem, response,sections, logger):
                     "original_solution": problem['solution'],
                     "problem": parsed_problem,
                     "solution": parsed_solution,
-                    "think":think
+                    "simplify_think":think
                 }
             else:
                 logger.warning(f"Parsed problem or solution is empty.")
@@ -148,9 +148,9 @@ def process_compare(problem, response1,response2,logger):
 def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
          max_tokens=32768,
          device="cuda",
-         data_name="MATH",
+         data_name="DEEPSEEK",
          max_iteration=3,
-         max_try=5,
+         max_try=3,
         #  model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/DeepSeek-R1-Distill-Qwen-32B/full/sft"
          model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"
          ):
@@ -189,7 +189,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
 
                 if not try_problems:
                     logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try},No more problems to process in this batch.")
-                    break
+                    continue
                 
                 # simplify problem
                 input_texts = [
@@ -212,7 +212,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
 
                 if len(simplified_problems) == 0:
                     logger.info("No problem for reject sample.")
-                    break
+                    continue
 
                 # reject sample
                 input_texts = [
@@ -236,7 +236,8 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
                 #compare process
                 if len(reject_sampled_problems) == 0:
                     logger.info("No problem for compare.")
-                    break
+                    continue
+
                 input_texts = [
                     tokenizer.apply_chat_template(
                         [{"role": "user", "content": createCompareThinkPrompt(problem['original_problem'], problem['original_solution'], problem['problem'], problem['solution'])}],
@@ -271,6 +272,9 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
                 logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try}, {len(compared_problems)} problems pass compare.")
                 logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try}, {len(reject_sampled_problems)- len(compared_problems)} problems fail in compare.")
 
+                if len(compared_problems)== 0 :
+                    logger.info("No problem for add think and save.")
+                    continue
                 #add_think
                 compared_problems=add_think(model,tokenizer,logger,compared_problems,save=0)
 
