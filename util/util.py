@@ -275,17 +275,17 @@ def reject_sample(response,solution):
     return is_equiv(temp_ans,ans)
 
 
-def reject_muti_sample(responses,solution,correct_cnt):
+def reject_muti_sample(responses,solution):
     '''
     input为两个完整答案的string
     '''
     ans = extract_answer(solution,data_name="math")
     correct_num=0
-    for response in response:
+    for response in responses:
         temp_ans = extract_answer(response,data_name="math")
         if math_equal(temp_ans,ans,timeout=True):
             correct_num+=1
-    return correct_num>=correct_cnt
+    return correct_num
 
 def find_position(section, next_section, section_list, title_list, matches, answer_len, logger, begin=0):
     try:
