@@ -2,9 +2,9 @@
 
 import os
 import json
-from util.config import TRAINING_DATA_PATH,TRAINING_DATA_PATH_AIME,MATH_DATA_PATH
+from util.config import TRAINING_DATA_PATH,TRAINING_DATA_PATH_AIME,MATH_DATA_PATH,DEEPSEEK_DATA_PATH
 
-def load_problems(iteration=0,search_keys=None,min_level=None,max_level=None):
+def load_problems(iteration=0,search_keys=None,min_level=None,max_level=None,data_name="None"):
     if iteration!=None:
         now_path = TRAINING_DATA_PATH +"/{}".format(iteration)
     else:
@@ -73,7 +73,6 @@ def load_simplify_problems(data_name="MATH", iteration=0):
             now_path = MATH_DATA_PATH + "/{}".format(iteration)
         else:
             now_path = MATH_DATA_PATH  # test_data
-            
     if os.path.isdir(now_path):
         for file_name in os.listdir(now_path):
             if file_name.endswith('.jsonl'):
@@ -83,7 +82,6 @@ def load_simplify_problems(data_name="MATH", iteration=0):
                         data = json.loads(line)  # Parse each line as a JSON object
                         problem = {
                             'problem': data.get('problem'),
-                            'level': data.get('level'),
                             'solution': data.get('solution'),
                         }
                         problems.append(problem)

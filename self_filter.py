@@ -13,7 +13,7 @@ from prompt.openai_access import batch_get_chat_api, get_oai_completion
 from prompt.prompt_design import createComparePrompt, createSimpleQuestionPromptV3, createAnsqerPrompt,createCompareThinkPrompt
 from util.config import TRAINING_DATA_PATH, OUTPUT_PATH, TRAINING_DATA_PATH_AIME,MATH_DATA_PATH
 from data.data_loader import load_simplify_problems
-from util.util import reject_sample
+from util.util import reject_sample,reject_muti_sample
 import openai
 import math
 from vllm import LLM, SamplingParams
@@ -100,6 +100,18 @@ def process_reject_sample(problem, section,response, logger):
             p.terminate()
             p.join()
         return False
+def process_muti_reject_sample(problem,section,responses,correct_limit,logger):
+    try:
+        if problem and problem.get(section) and responses:
+            # 如果你还需要传 logger 或其它参数，也可一并加入
+            result = reject_muti_sample(responses,problem['section'],correct_limit)
+            return result
+        else:
+            logger.warning("Missing data for reject sample.")
+            return False
+    except Exception as e:
+        logger.error(f"Error in reject_sample: {e}")
+        return False
 def process_compare(problem, response1,response2,logger):
     try:
         value=0
@@ -137,18 +149,21 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
          device="cuda",
         #  model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/DeepSeek-R1-Distill-Qwen-32B/full/sft"
          model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B",
-         batch_size=512
+         batch_size=512,
+         N=5,
+         correct_limit=3
          ):
 
     # Define sampling parameters
     sampling_params = SamplingParams(
         max_tokens=max_tokens,
-        temperature=0.7,
+        temperature=0.6,
         stop=stop_words,
-        n=1
+        n=N
     )
-    # random.seed(100)
-    # random.shuffle(problems)
+    random.seed(100)
+    random.shuffle(problems)
+    problems=problems[:100]
     output_list=[]
     try:
         total_batch=math.ceil(len(problems)/batch_size)
@@ -168,12 +183,19 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
 
             logger.info(f"Start reject sample.")
             generated_responses = model.generate(input_texts, sampling_params=sampling_params)
-            generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
-            reject_sampled_problems = [process_think(problem, generated_response) for problem,generated_response in zip(try_problems,generated_responses)  ]
-            reject_sampled_problems = [
-                problem for problem, generated_response in tqdm(zip(try_problems, generated_responses), total=len(try_problems), desc="Processing Problems")
-                if process_reject_sample(problem, 'complex_problem',generated_response, logger)
-            ]
+            if N==1:
+                generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
+                reject_sampled_problems = [process_think(problem, generated_response) for problem,generated_response in zip(try_problems,generated_responses)  ]
+                reject_sampled_problems = [
+                    problem for problem, generated_response in tqdm(zip(try_problems, generated_responses), total=len(try_problems), desc="Processing Problems")
+                    if process_reject_sample(problem, 'complex_solution',generated_response, logger)
+                ]
+            else:
+                generated_responses = [[generated_response.outputs[i].text for i in range(N)]for generated_response in generated_responses]
+                reject_sampled_problems = [
+                    problem for problem, generated_response in tqdm(zip(try_problems, generated_responses), total=len(try_problems), desc="Processing Problems")
+                    if process_muti_reject_sample(problem, 'complex_solution',generated_response,correct_limit,logger)
+                ]
             logger.info(f"{len(reject_sampled_problems)} problems pass reject sample.")
             logger.info(f" {len(try_problems)- len(reject_sampled_problems)} problems fail in reject sample.")
 
@@ -218,7 +240,7 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
 def main():
     logger = set_logger.setup_logger()
     logger.info("Starting main processing loop.")
-    model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/NewThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"
+    model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/SelfThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"
      # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
     model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=8)
