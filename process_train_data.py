@@ -2,7 +2,7 @@ import os
 import json
 from prompt.prompt_design import createComplexQuestionProcessPrompt,createComplexQuestionPrompt
 from data.data_loader import load_problems,load_simplify_problems
-def process_train_data(data_list,output_path=None,prompt_type="generate_data"):
+def process_train_data(data_list,output_path=None,prompt_type="generate_data",sections=["complex_problem","complex_solution"]):
     problems=[]
     for data in data_list:   
             if prompt_type=="generate_data":
@@ -53,11 +53,11 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data"):
                         },
                         {
                             "role": "user",
-                            "content": data['problem']
+                            "content": data[sections[0]]
                         },
                         {
                             "role": "assistant",
-                            "content": data['solution']
+                            "content": data[sections[1]]
                         }
                     ]
                 }
@@ -69,12 +69,18 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data"):
             json.dump(problems, output_json, ensure_ascii=False, indent=4)
     return problems
 def main():
-    now_path="/data/xucaijun/Math-Generator/outputs/rawMATH_800.json"
-    result_path="/data/xucaijun/Math-Generator/outputs/MATH_800.json"
+    now_path="/data/xucaijun/New/Math-Generator/outputs/second_iter_deepseek_answer.json"
+    result_path="/data/xucaijun/New/Math-Generator/outputs/second_iter_test.json"
     file_path = os.path.join(now_path)
     with open(file_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
-        process_train_data(data_list,output_path=result_path,prompt_type="qwen_math")
+        # problems=[ problem for problem in data_list if problem['value']==True]
+        problems=[]
+        for data in data_list:
+            for problem in data:
+                if problem['complex_problem'] != problem['original_problem']:
+                    problems.append(problem)
+        process_train_data(problems,output_path=result_path,prompt_type="qwen_math",sections=['complex_problem','complex_solution'])
     # problems = load_simplify_problems()
     # print(len(problems))
     # process_train_data(problems,output_path=result_path,prompt_type="qwen_math")
