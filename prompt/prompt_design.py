@@ -436,31 +436,28 @@ def createAddProcessPrompt_2(problem_1, solution_1,problem_2,solution_2):
 add_think_prompt = '''
 You are a mathematics expert tasked with increasing the complexity of a given problem.
 
-Supposing you have alreadly transfromed the **Original Problem** into **Complexified Problem**, your task is to supply the think process of complification.
+Supposing you have alreadly transformed the **Original Problem** into **Complexified Problem**, your task is to supply the think process of transformation.
 
-**Reversed Think** is the reversed version of your output, and you should use it as the guide of format and content.
+You should repeat the **Complexified Problem** and **Complexified Solution** in the output content, and create the think process inside <think></think>.
 
-Specifically, your output should include the following:
-- Break down the original solution and identify opportunities to introduce more advanced concepts.
-- Clearly explain how you are increasing the complexity by adding these techniques or ideas.
-- Provide the method how to adjust the original problem statement to reflect the more sophisticated approach.
+**Constraints**:
+- Start thinking from **Original Problem** and figure out how to transform it into **Complexified Problem**.
+- Suppose you do not know the **Complexified Problem** and you generate it through the think process.
 '''
 
 
-def createAddThinkPrompt(reversed_think,problem_1, solution_1,problem_2,solution_2):
+def createAddThinkPrompt(problem_1, solution_1,problem_2,solution_2):
     prompt = add_think_prompt
     prompt += "\n\n**Original Problem**:\n{}\n".format(problem_1)
     prompt += "\n**Original Solution**:\n{}\n".format(solution_1)
     prompt += "\n**Complexified Problem**:\n{}\n".format(problem_2)
     prompt += "\n**Complexified Solution**:\n{}\n".format(solution_2)
-    prompt += "\n**Reversed Think**:\n{}\n".format(reversed_think)
     return prompt
 
 
-base_instruction_think = """
-You are a mathematics expert specializing in simplifying math problems.
 
-Your task is to transform the **Original Problem** into a more accessible version by simplifying core mathematical concepts or techniques used in **Original Solution**.
+base_instruction_think = """
+Your task is to transform the **Original Problem** into one different and more accessible problem by simplifying core mathematical concepts or techniques used in **Original Solution**.
 
 ** Simplification Criteria**:
 - Break down the original solution and identify significant core concepts or techniques that can be simplified, replaced, or deleted to generate a new problem.
@@ -468,7 +465,7 @@ Your task is to transform the **Original Problem** into a more accessible versio
 - Adjust the original problem statement to align with the simplified approach.
 
 Please provide the following sections in your answer:
-   
+  
 1. **Simplified Problem**:
    - Provide the **revised** problem statement **without any introductory or explanatory sentences**.
 
@@ -478,10 +475,6 @@ Please provide the following sections in your answer:
 **Format Requirements**:
 - Use **bold** formatting for each section title.
 - Ensure that the final answer is enclosed within \\boxed{{}}.
-
-**Constraints**:
-- Ensure that the simplified problem has a unique answer.
-- Must generate one different problem to reflect the simpler approach.
 """
 
 def createThinkSimpleQuestionPrompt(problem, solution):
@@ -496,13 +489,6 @@ compare_think_prompt='''
 You are an expert in evaluating and comparing mathematical problems based on their difficulty.
 
 Your task is to assess the relative difficulty between two given problems by analyzing their descriptions and solutions.
-
-**Comparison Criteria**:
-
-- Analyze how intricate and involved each problem is.
-- Examine the mathematical operations and techniques required.
-- Consider the foundational knowledge needed to approach each problem.
-- Assess the overall challenge in finding a solution.
 
 Please provide **one** of the following conclusion in your answer:
    
