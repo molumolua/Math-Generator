@@ -106,15 +106,15 @@ def process_muti_reject_sample(problem,section,responses,correct_limit,logger):
             # 如果你还需要传 logger 或其它参数，也可一并加入
             result = reject_muti_sample(responses,problem[section])
             problem['correct_num']=result
-            return result>=correct_limit
+            return True
         else:
             logger.warning("Missing data for reject sample.")
             problem['correct_num']=0
-            return False
+            return True
     except Exception as e:
         logger.error(f"Error in reject_sample: {e}")
         problem['correct_num']=0
-        return False
+        return True
 def process_compare(problem, response1,response2,logger):
     try:
         value=0
@@ -245,10 +245,10 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
 def main():
     logger = set_logger.setup_logger()
     logger.info("Starting main processing loop.")
-    model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/SelfThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"
+    model_name_or_path="/data/modelscope/hub/Qwen/Qwen2.5-7B-Instruct"
      # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
-    model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=8)
+    model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=4)
     tokenizer = AutoTokenizer.from_pretrained(
                 model_name_or_path, trust_remote_code=True
     )
@@ -263,7 +263,7 @@ def main():
                     data_list.append(problem)
             problems=data_list
     output_list=self_filter(model,tokenizer,problems,logger)
-    output_path="/data/xucaijun/New/Math-Generator/outputs/test.json"
+    output_path="/data/xucaijun/New/Math-Generator/outputs/qwen7b-test.json"
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
 if __name__ == "__main__":

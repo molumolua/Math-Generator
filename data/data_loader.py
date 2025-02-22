@@ -73,6 +73,13 @@ def load_simplify_problems(data_name="MATH", iteration=0):
             now_path = MATH_DATA_PATH + "/{}".format(iteration)
         else:
             now_path = MATH_DATA_PATH  # test_data
+    elif data_name =="DEEPSEEK":
+        if iteration is not None:
+            now_path = DEEPSEEK_DATA_PATH + "/{}".format(iteration)
+        else:
+            now_path = DEEPSEEK_DATA_PATH  + "/{}".format(0)
+    else:
+        raise ValueError("Not support data name.")
     if os.path.isdir(now_path):
         for file_name in os.listdir(now_path):
             if file_name.endswith('.jsonl'):
@@ -86,6 +93,7 @@ def load_simplify_problems(data_name="MATH", iteration=0):
                         }
                         problems.append(problem)
             elif file_name.endswith(".json"):
+                file_path = os.path.join(now_path, file_name)
                 with open(file_path, 'r', encoding='utf-8') as f:
                     problems = json.load(f)
     return problems

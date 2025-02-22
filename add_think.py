@@ -44,7 +44,7 @@ def load_problems(data_name="MATH", iteration=0):
     return problems
 
 def process_complex(problem, response,logger):
-    problem['before_think'],problem['complex_process'] =extract_think_and_after(response)
+    problem['complex_think'],_ =extract_think_and_after(response)
     return problem
 
 
@@ -68,7 +68,7 @@ def add_think(model,tokenizer,logger,problems,stop_words = ["</s>", "<｜Assista
         # add think
         input_texts = [
                 tokenizer.apply_chat_template(
-                        [{"role": "user", "content":createAddThinkPrompt(example['think'],example['problem'],example['solution'],example['original_problem'],example['original_solution'])}],
+                        [{"role": "user", "content":createAddThinkPrompt(example['problem'],example['solution'],example['original_problem'],example['original_solution'])}],
                         tokenize=False,
                         add_generation_prompt=True,
                 )

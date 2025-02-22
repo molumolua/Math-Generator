@@ -146,7 +146,7 @@ import json
 from util import util, set_logger
 from reject_sample import reject_sample
 from prompt.openai_access import batch_get_chat_api
-from util.util import parse_answer
+from util.util import parse_answer,extract_think_and_after
 from prompt.prompt_design import createAnsqerPrompt,createComparePrompt
 import math
 import random
@@ -308,6 +308,12 @@ def main_4(
     with open(output_path, 'w', encoding='utf-8') as output_json:
         json.dump(output_list, output_json, ensure_ascii=False, indent=4)
 
+def process_problem(problem):
+    if problem['value']==True:
+        think,solution=extract_think_and_after(problem['output'])
+        return {'problem': problem['problem'],'solution': solution}
+    else:
+        return {'problem': problem['problem'],'solution': problem['solution']}
 if __name__ == "__main__":
     # # main_4()
     # from collections import defaultdict
@@ -333,4 +339,14 @@ if __name__ == "__main__":
 
     # # 输出结果
     # print(result)
-    print(get_oai_completion("你是谁？","deepseek-r1",0.7))
+    # print(get_oai_completion("你是谁？","deepseek-r1",0.7))
+
+    input_path="/data/xucaijun/New/Math-Generator/outputs/math_output_deepseek.json"
+    with open(input_path, 'r', encoding='utf-8') as f:
+        problems = json.load(f)
+
+    problems=[ process_problem(problem) for problem in problems ]
+    output_path="/data/xucaijun/New/Math-Generator/deepseek-math/0/math_output_deepseek.json"
+    with open(output_path, 'w', encoding='utf-8') as output_json:
+        json.dump(problems, output_json, ensure_ascii=False, indent=4)
+
