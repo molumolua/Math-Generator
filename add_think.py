@@ -18,39 +18,14 @@ import math
 from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from util import util, set_logger
-def load_problems(data_name="MATH", iteration=0):
-    problems = []
-    if data_name == "MATH":
-        if iteration is not None:
-            now_path = MATH_DATA_PATH + "/{}".format(iteration)
-        else:
-            now_path = MATH_DATA_PATH  # test_data
-            
-    if os.path.isdir(now_path):
-        for file_name in os.listdir(now_path):
-            if file_name.endswith('.jsonl'):
-                file_path = os.path.join(now_path, file_name)
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    for line in f:
-                        data = json.loads(line)  # Parse each line as a JSON object
-                        problem = {
-                            'original_problem':data.get('original_problem'),
-                            'original_solution':data.get('original_solution'),
-                            'problem': data.get('problem'),
-                            'level': data.get('level'),
-                            'solution': data.get('solution'),
-                        }
-                        problems.append(problem)
-    return problems
-
 def process_complex(problem, response,logger):
-    problem['complex_think'],_ =extract_think_and_after(response)
+    problem['test_complex_think'],problem['test_answer'] =extract_think_and_after(response)
     return problem
 
 
 def add_think(model,tokenizer,logger,problems,stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
          max_tokens=32768,
-         output_path="/data/xucaijun/Math-Generator/outputs/newprompt_fliter_complex_question_process_deepseek.json",
+         output_path="/data/xucaijun/New/Math-Generator/outputs/test_add_think_3.json",
          save=0
         #  model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/DeepSeek-R1-Distill-Qwen-32B/full/sft"
         #  model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"
@@ -59,7 +34,7 @@ def add_think(model,tokenizer,logger,problems,stop_words = ["</s>", "<｜Assista
     # Define sampling parameters
     sampling_params = SamplingParams(
         max_tokens=max_tokens,
-        temperature=0.7,
+        temperature=0.6,
         stop=stop_words,
         n=1
     )
@@ -98,7 +73,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(
                 model_name_or_path, trust_remote_code=True
     )
-    problems=load_problems(iteration=1)
+    problems=load_simplify_problems("DEEPSEEK",iteration=1)[10:110]
     logger.info("Model loaded successfully.")
     add_think(model,tokenizer,logger,problems,save=1)
 if __name__ == "__main__":
