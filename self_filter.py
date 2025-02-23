@@ -227,7 +227,7 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
 
             #reversed compare
             
-            
+
             reversed_input_texts = [
                         tokenizer.apply_chat_template(
                             [{"role": "user", "content": createCompareThinkPrompt(problem[complex_section_names[0]], problem[complex_section_names[1]], problem[original_section_names[0]], problem[original_section_names[1]])}],
@@ -247,7 +247,7 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
             logger.info(f" {len(compared_problems)} problems pass compare.")
             logger.info(f" {len(reject_sampled_problems)- len(compared_problems)} problems fail in compare.")
 
-            output_problems=reject_sampled_problems
+            output_problems=compared_problems
 
             output_list+=output_problems
     except Exception as e:
