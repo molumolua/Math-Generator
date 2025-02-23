@@ -20,6 +20,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from util import util, set_logger
 from add_think import add_think
 from util.util import extract_think_and_after
+from self_filter import self_filter
 def save_problems_to_jsonl(file_name,problems, iteration,logger):
     """
     参数:
@@ -175,7 +176,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
         logger.info(f"Starting iteration {iteration + 1}/{max_iteration}")
         try:
             problems = load_simplify_problems(data_name=data_name,iteration=iteration)
-            problems = problems[:10]
+            problems = problems[:100]
             total_problems = len(problems)
             logger.info(f"Loaded {total_problems} problems for iteration {iteration + 1}")
             done_problems=[]
@@ -214,67 +215,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
                     logger.info("No problem for reject sample.")
                     continue
 
-                # reject sample
-                input_texts = [
-                    tokenizer.apply_chat_template(
-                        [{"role": "user", "content": createAnsqerPrompt(problem['problem'])}],
-                        tokenize=False,
-                        add_generation_prompt=True,
-                    )
-                    for problem in simplified_problems
-                ]
-                logger.info(input_texts[0])
-
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try},Start reject sample.")
-                generated_responses = model.generate(input_texts, sampling_params=sampling_params)
-                generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
-
-                reject_sampled_problems = [problem for problem,generated_response in zip(simplified_problems,generated_responses) if process_reject_sample(problem,generated_response,logger)]
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try}, {len(reject_sampled_problems)} problems pass reject sample.")
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try}, {len(simplified_problems)- len(reject_sampled_problems)} problems fail in reject sample.")
-
-                #compare process
-                if len(reject_sampled_problems) == 0:
-                    logger.info("No problem for compare.")
-                    continue
-
-                input_texts = [
-                    tokenizer.apply_chat_template(
-                        [{"role": "user", "content": createCompareThinkPrompt(problem['original_problem'], problem['original_solution'], problem['problem'], problem['solution'])}],
-                        tokenize=False,
-                        add_generation_prompt=True,
-                    )
-                    for problem in reject_sampled_problems
-                ]
-                logger.info(input_texts[0])
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try},Start compare.")
-                generated_responses = model.generate(input_texts, sampling_params=sampling_params)
-                generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
-                logger.info(generated_responses[0])
-
-                #reversed compare
-                reversed_input_texts = [
-                    tokenizer.apply_chat_template(
-                        [{"role": "user", "content": createCompareThinkPrompt(problem['problem'], problem['solution'], problem['original_problem'], problem['original_solution'])}],
-                        tokenize=False,
-                        add_generation_prompt=True,
-                    )
-                    for problem in reject_sampled_problems
-                ]
-                logger.info(reversed_input_texts[0])
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try},Start reversed compare.")
-                reversed_generated_responses = model.generate(reversed_input_texts, sampling_params=sampling_params)
-                reversed_generated_responses = [generated_response.outputs[0].text for generated_response in reversed_generated_responses]
-                
-                logger.info(reversed_generated_responses[0])
-                compared_problems = [problem for problem,generated_response,reversed_generated_response \
-                                     in zip(reject_sampled_problems,generated_responses,reversed_generated_responses) if process_compare(problem,generated_response,reversed_generated_response,logger)]
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try}, {len(compared_problems)} problems pass compare.")
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try}, {len(reject_sampled_problems)- len(compared_problems)} problems fail in compare.")
-
-                if len(compared_problems)== 0 :
-                    logger.info("No problem for add think and save.")
-                    continue
+                compared_problems=self_filter(model,tokenizer,simplified_problems,logger,test_section_names=['problem','solution'],original_section_names=['problem','solution'],complex_section_names=['original_problem','original_solution'])
                 #add_think
                 compared_problems=add_think(model,tokenizer,logger,compared_problems,save=0)
 

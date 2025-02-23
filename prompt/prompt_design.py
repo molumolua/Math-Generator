@@ -434,15 +434,13 @@ def createAddProcessPrompt_2(problem_1, solution_1,problem_2,solution_2):
 
 
 add_think_prompt = '''
-You are a mathematics expert tasked with increasing the complexity of a given problem.
+You are a mathematics expert tasked with increasing the complexity of a problem.
 
-Supposing you have alreadly transformed the **Original Problem** into **Complexified Problem**, your task is to supply the think process of transformation.
+Supposing you have alreadly transformed **Original Problem** into **Complexified Problem**, explain the reasoning process of transforming the original problem into the more complex one inside <think></think>.
 
-You should repeat the **Complexified Problem** and **Complexified Solution** in the output content, and create the think process inside <think></think>.
-
-**Constraints**:
-- Start thinking from **Original Problem** and figure out how to transform it into **Complexified Problem**.
-- Suppose you do not know the **Complexified Problem** and you generate it through the think process.
+**Constraint**:
+- Suppose you do not know **Complexified Problem** and focus only on the transforming **Original Problem** into the complexified one.
+- Repeat given **Complexified Problem** and **Complexified Solution** in the output.
 '''
 
 
@@ -467,7 +465,7 @@ Your task is to transform the **Original Problem** into one different and more a
 Please provide the following sections in your answer:
   
 1. **Simplified Problem**:
-   - Provide the **revised** problem statement **without any introductory or explanatory sentences**.
+   - Provide the **revised** problem statement without any introductory or explanatory sentences.
 
 2. **Simplified Solution**:
    - Present the simplified solution in a logical sequence, ensuring the correctness.
@@ -486,8 +484,6 @@ def createThinkSimpleQuestionPrompt(problem, solution):
 
 
 compare_think_prompt='''
-You are an expert in evaluating and comparing mathematical problems based on their difficulty.
-
 Your task is to assess the relative difficulty between two given problems by analyzing their descriptions and solutions.
 
 Please provide **one** of the following conclusion in your answer:
