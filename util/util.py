@@ -3,6 +3,7 @@ from util.grader import math_equal
 import re
 from evaluation.grader import math_equal
 from evaluation.parser import extract_answer
+from collections import defaultdict
 
 def last_boxed_only(sample):
     q, a = sample
@@ -389,3 +390,18 @@ def extract_think_and_after(text):
     else:
         # 如果没有匹配到，就返回 (None, None)
         return None, None
+    
+
+
+
+def process_output_data(data_list):
+    # 使用 defaultdict 来聚合
+    grouped = defaultdict(list)
+
+    # 遍历数据，将相同 original_problem 的 dict 聚集在一起
+    for item in data_list:
+        grouped[item['original_problem']].append(item)
+
+    # 转换成二维 list
+    result = list(grouped.values())
+    return result

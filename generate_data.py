@@ -16,19 +16,7 @@ from filter_problems import filter_problems
 from process_train_data import process_train_data
 from self_filter import self_filter
 from collections import defaultdict
-from util.util import extract_think_and_after
-
-def process_output_data(data_list):
-    # 使用 defaultdict 来聚合
-    grouped = defaultdict(list)
-
-    # 遍历数据，将相同 original_problem 的 dict 聚集在一起
-    for item in data_list:
-        grouped[item['original_problem']].append(item)
-
-    # 转换成二维 list
-    result = list(grouped.values())
-    return result
+from util.util import extract_think_and_after,process_output_data
 def process_problem(problem):
     think,solution=extract_think_and_after(problem['output'])
     return {

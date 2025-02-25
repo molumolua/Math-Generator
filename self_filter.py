@@ -174,9 +174,6 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
         stop=stop_words,
         n=1
     )
-    random.seed(100)
-    random.shuffle(problems)
-    problems=problems[:100]
     output_list=[]
     try:
         total_batch=math.ceil(len(problems)/batch_size)
@@ -195,8 +192,8 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
             # logger.info(input_texts[0])
 
             logger.info(f"Start reject sample.")
-            generated_responses = model.generate(input_texts, sampling_params=sampling_params)
             if N==1:
+                generated_responses = model.generate(input_texts, sampling_params=compare_sampling_params)
                 generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
                 reject_sampled_problems = [process_think(problem, generated_response) for problem,generated_response in zip(try_problems,generated_responses)  ]
                 reject_sampled_problems = [
@@ -204,6 +201,7 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
                     if process_reject_sample(problem, test_section_names[1],generated_response, logger)
                 ]
             else:
+                generated_responses = model.generate(input_texts, sampling_params=sampling_params)
                 generated_responses = [[generated_response.outputs[i].text for i in range(N)]for generated_response in generated_responses]
                 reject_sampled_problems = [
                     problem for problem, generated_response in tqdm(zip(try_problems, generated_responses), total=len(try_problems), desc="Processing Problems")
