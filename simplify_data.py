@@ -19,7 +19,7 @@ from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from util import util, set_logger
 from add_think import add_think
-from util.util import extract_think_and_after
+from util.util import extract_think_and_after,process_output_data
 from self_filter import self_filter
 def save_problems_to_jsonl(file_name,problems, iteration,logger):
     """
@@ -151,7 +151,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
          device="cuda",
          data_name="DEEPSEEK",
          max_iteration=3,
-         max_try=3,
+         N=3,
         #  model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/DeepSeek-R1-Distill-Qwen-32B/full/sft"
          model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"
          ):
@@ -168,61 +168,62 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
     # Define sampling parameters
     sampling_params = SamplingParams(
         max_tokens=max_tokens,
-        temperature=0.7,
+        temperature=0.8,
         stop=stop_words,
-        n=1
+        n=N
     )
     for iteration in range(max_iteration):
         logger.info(f"Starting iteration {iteration + 1}/{max_iteration}")
         try:
             problems = load_simplify_problems(data_name=data_name,iteration=iteration)
-            problems = problems[:100]
+            if iteration>0:
+                problems = [problem[0] for problem in problems]
+            problems = problems
             total_problems = len(problems)
             logger.info(f"Loaded {total_problems} problems for iteration {iteration + 1}")
             done_problems=[]
-            done_keys=[]
-            for attempt in range(max_try):
-                try_problems = [
-                    problem for problem in problems
-                    if problem['problem'] not in done_keys
-                ]
-                logger.debug(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try},{len(try_problems)} problems to process in this attempt.")
+            try_problems = [problem for problem in problems]
+            logger.debug(f"Iteation {iteration + 1}, {len(try_problems)} problems to process in this attempt.")
 
-                if not try_problems:
-                    logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try},No more problems to process in this batch.")
-                    continue
+            if not try_problems:
+                logger.info(f"Iteation {iteration + 1}, No more problems to process in this iteration.")
+                continue
                 
-                # simplify problem
-                input_texts = [
-                    tokenizer.apply_chat_template(
-                        [{"role": "user", "content": createThinkSimpleQuestionPrompt(problem['problem'], problem['solution'])}],
-                        tokenize=False,
-                        add_generation_prompt=True,
-                    )
-                    for problem in try_problems
-                ]
-                logger.info(input_texts[0])
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try},Start simplify problems.")
-                generated_responses = model.generate(input_texts, sampling_params=sampling_params)
-                generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
+            # simplify problem
+            input_texts = [
+                tokenizer.apply_chat_template(
+                    [{"role": "user", "content": createThinkSimpleQuestionPrompt(problem['problem'], problem['solution'])}],
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+                for problem in try_problems
+            ]
+            logger.info(input_texts[0])
+            logger.info(f"Iteation {iteration + 1}, Start simplify problems.")
+            generated_responses = model.generate(input_texts, sampling_params=sampling_params)
+            generated_responses = [[generated_response.outputs[i].text for i in range(N)] for generated_response in generated_responses]
+            sections = ["Simplified Problem", "Simplified Solution"]
+            simplified_problems = [[process_problem(problem, response,sections, logger) for response in generated_response ] for problem,generated_response in zip(try_problems,generated_responses)]
+            simplified_problems = [[item for item in item_list if item] for item_list in simplified_problems if item_list]
+            
+            todo_problems=[]
+            for item_list in simplified_problems:
+                todo_problems +=item_list
+            logger.info(f"Iteation {iteration + 1}, Successful simplified {len(todo_problems)} problems.")
 
-                sections = ["Simplified Problem", "Simplified Solution"]
-                simplified_problems = [process_problem(problem, generated_response,sections, logger) for problem,generated_response in zip(try_problems,generated_responses)]
-                simplified_problems = [item for item in simplified_problems if item]
-                logger.info(f"Iteation {iteration + 1}, Attempt {attempt + 1}/{max_try},Successful simplified {len(simplified_problems)} problems.")
+            if len(todo_problems) == 0:
+                logger.info("No problem for reject sample.")
+                continue
 
-                if len(simplified_problems) == 0:
-                    logger.info("No problem for reject sample.")
-                    continue
+            compared_problems=self_filter(model,tokenizer,todo_problems,logger,batch_size=len(todo_problems),N=1,test_section_names=['problem','solution'],original_section_names=['problem','solution'],complex_section_names=['original_problem','original_solution'])
+            #add_think
+            compared_problems=add_think(model,tokenizer,logger,compared_problems,save=0)
 
-                compared_problems=self_filter(model,tokenizer,simplified_problems,logger,test_section_names=['problem','solution'],original_section_names=['problem','solution'],complex_section_names=['original_problem','original_solution'])
-                #add_think
-                compared_problems=add_think(model,tokenizer,logger,compared_problems,save=0)
+            done_problems +=compared_problems
 
-                done_problems +=compared_problems
-                done_keys +=[problem["original_problem"] for problem in compared_problems]
-                save_problems_to_json("simplify_problem.json",done_problems,iteration+1,logger)
-                # save_problems_to_jsonl("train_data.jsonl",done_problems,iteration+1,logger)
+            done_problems = process_output_data(done_problems)
+            save_problems_to_json("simplify_problem.json",done_problems,iteration+1,logger)
+            # save_problems_to_jsonl("train_data.jsonl",done_problems,iteration+1,logger)
                 
             logger.info(f"Iteration {iteration + 1} completed,Total {len(done_problems)}/{len(problems)} has been simplified.")
         except Exception as e:
