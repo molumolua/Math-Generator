@@ -356,14 +356,12 @@ Please provide the following sections in your answer:
 """
 
 complexification_prompt_noprocess = """
-You are a mathematics expert specializing in increasing the complexity of math problems.
-
-Your task is to transform the **Original Problem** into a more challenging version by introducing advanced mathematical concepts or techniques.
+Your task is to transform the **Original Problem** into a more challenging version.
 
 Please provide the following sections in your answer:
 
 1. **Complexified Problem**:
-   - Provide the **revised** problem statement **without any introductory or explanatory sentences**.
+   - Provide the **revised** problem statement without any introductory or explanatory sentences.
 
 2. **Complexified Solution**:
    - Present the complexified solution in a logical sequence, ensuring the correctness.
