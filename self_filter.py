@@ -157,7 +157,8 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
          complex_section_names=["complex_problem","complex_solution"],
          batch_size=512,
          N=5,
-         correct_limit=3
+         correct_limit=3,
+         enable_compare = True
          ):
 
     # Define sampling parameters
@@ -209,43 +210,46 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
                 ]
             logger.info(f"{len(reject_sampled_problems)} problems pass reject sample.")
             logger.info(f" {len(try_problems)- len(reject_sampled_problems)} problems fail in reject sample.")
-
-            input_texts = [
-                        tokenizer.apply_chat_template(
-                            [{"role": "user", "content": createCompareThinkPrompt(problem[original_section_names[0]], problem[original_section_names[1]], problem[complex_section_names[0]], problem[complex_section_names[1]])}],
-                            tokenize=False,
-                            add_generation_prompt=True,
-                        )
-                        for problem in reject_sampled_problems
-            ]
-            # logger.info(input_texts[0])
-            logger.info(f"Start compare.")
-            generated_responses = model.generate(input_texts, sampling_params=compare_sampling_params)
-            generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
-
-            #reversed compare
             
+            if enable_compare:
+                input_texts = [
+                            tokenizer.apply_chat_template(
+                                [{"role": "user", "content": createCompareThinkPrompt(problem[original_section_names[0]], problem[original_section_names[1]], problem[complex_section_names[0]], problem[complex_section_names[1]])}],
+                                tokenize=False,
+                                add_generation_prompt=True,
+                            )
+                            for problem in reject_sampled_problems
+                ]
+                # logger.info(input_texts[0])
+                logger.info(f"Start compare.")
+                generated_responses = model.generate(input_texts, sampling_params=compare_sampling_params)
+                generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
 
-            reversed_input_texts = [
-                        tokenizer.apply_chat_template(
-                            [{"role": "user", "content": createCompareThinkPrompt(problem[complex_section_names[0]], problem[complex_section_names[1]], problem[original_section_names[0]], problem[original_section_names[1]])}],
-                            tokenize=False,
-                            add_generation_prompt=True,
-                        )
-                        for problem in reject_sampled_problems
-            ]
-            # logger.info(reversed_input_texts[0])
-            logger.info(f"Start reversed compare.")
-            reversed_generated_responses = model.generate(reversed_input_texts, sampling_params=compare_sampling_params)
-            reversed_generated_responses = [generated_response.outputs[0].text for generated_response in reversed_generated_responses]
-                    
-            # logger.info(reversed_generated_responses[0])
-            compared_problems = [problem for problem,generated_response,reversed_generated_response \
-                                        in zip(reject_sampled_problems,generated_responses,reversed_generated_responses) if process_compare(problem,generated_response,reversed_generated_response,logger)]
-            logger.info(f" {len(compared_problems)} problems pass compare.")
-            logger.info(f" {len(reject_sampled_problems)- len(compared_problems)} problems fail in compare.")
+                #reversed compare
+                
 
-            output_problems=compared_problems
+                reversed_input_texts = [
+                            tokenizer.apply_chat_template(
+                                [{"role": "user", "content": createCompareThinkPrompt(problem[complex_section_names[0]], problem[complex_section_names[1]], problem[original_section_names[0]], problem[original_section_names[1]])}],
+                                tokenize=False,
+                                add_generation_prompt=True,
+                            )
+                            for problem in reject_sampled_problems
+                ]
+                # logger.info(reversed_input_texts[0])
+                logger.info(f"Start reversed compare.")
+                reversed_generated_responses = model.generate(reversed_input_texts, sampling_params=compare_sampling_params)
+                reversed_generated_responses = [generated_response.outputs[0].text for generated_response in reversed_generated_responses]
+                        
+                # logger.info(reversed_generated_responses[0])
+                compared_problems = [problem for problem,generated_response,reversed_generated_response \
+                                            in zip(reject_sampled_problems,generated_responses,reversed_generated_responses) if process_compare(problem,generated_response,reversed_generated_response,logger)]
+                logger.info(f" {len(compared_problems)} problems pass compare.")
+                logger.info(f" {len(reject_sampled_problems)- len(compared_problems)} problems fail in compare.")
+
+                output_problems=compared_problems
+            else:
+                output_problems=reject_sampled_problems
 
             output_list+=output_problems
     except Exception as e:
