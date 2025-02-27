@@ -25,80 +25,70 @@ import multiprocessing
 
 import concurrent.futures
 import time
-# def process_reject_sample(problem, response, logger):
-#     def reject_sample_with_timeout():
-#         if problem and problem['complex_solution'] and response:
-#             return reject_sample(response, problem['complex_solution'])
-#         else:
-#             logger.warning(f"Missing data for reject sample.")
-#             return False
+def process_reject_sample(problem, section,response, logger):
+    try:
+        if problem and problem.get(section) and response:
+            return reject_sample(response, problem[section])
+        else:
+            logger.warning(f"Missing data for reject sample.")
+            return False
+    except Exception as e:
+        logger.error(f"Error in reject_sample: {e}")
+        return False
+# def process_reject_sample(problem, section,response, logger):
+#     """
+#     在单独的进程中执行reject_sample相关的操作，
+#     如果超过设定的超时时间（默认为20秒），直接杀死子进程并返回False
+#     """
+
+#     # 这个内部函数里放需要执行的逻辑，比如调用 reject_sample 及其子函数
+#     def _worker_func(return_dict, problem, response):
+#         try:
+#             if problem and problem.get(section) and response:
+#                 # 如果你还需要传 logger 或其它参数，也可一并加入
+#                 result = reject_sample(response, problem[section])
+#                 return_dict['result'] = result
+#             else:
+#                 logger.warning("Missing data for reject sample.")
+#                 return_dict['result'] = False
+#         except Exception as e:
+#             logger.error(f"Error in reject_sample: {e}")
+#             return_dict['result'] = False
+
+#     manager = multiprocessing.Manager()
+#     return_dict = manager.dict()
+
+#     # 创建子进程
+#     p = multiprocessing.Process(
+#         target=_worker_func,
+#         args=(return_dict, problem, response)
+#     )
 
 #     try:
-#         with concurrent.futures.ThreadPoolExecutor() as executor:
-#             future = executor.submit(reject_sample_with_timeout)
-#             result = future.result(timeout=20)  # 设置超时时间为20秒
-#             return result
-#     except concurrent.futures.TimeoutError:
-#         logger.warning(response)
-#         logger.warning("process_reject_sample exceeded the timeout limit of 20 seconds.")
-#         return False
+#         # 启动子进程
+#         p.start()
+#         # 设置最大等待时间20秒
+#         p.join(timeout=20)
+
+#         # 如果子进程还存活，说明超时
+#         if p.is_alive():
+#             logger.warning(problem)
+#             logger.warning(response)
+#             logger.warning("process_reject_sample exceeded the timeout limit of 20 seconds.")
+#             p.terminate()   # 终止子进程
+#             p.join()        # 回收子进程
+#             return False
+
+#         # 如果没超时就获取执行结果
+#         result = return_dict.get('result', False)
+#         return result
+
 #     except Exception as e:
-#         logger.error(f"Error in process_reject_sample: {e}")
+#         logger.error(f"Exception in process_reject_sample: {e}")
+#         if p.is_alive():
+#             p.terminate()
+#             p.join()
 #         return False
-def process_reject_sample(problem, section,response, logger):
-    """
-    在单独的进程中执行reject_sample相关的操作，
-    如果超过设定的超时时间（默认为20秒），直接杀死子进程并返回False
-    """
-
-    # 这个内部函数里放需要执行的逻辑，比如调用 reject_sample 及其子函数
-    def _worker_func(return_dict, problem, response):
-        try:
-            if problem and problem.get(section) and response:
-                # 如果你还需要传 logger 或其它参数，也可一并加入
-                result = reject_sample(response, problem[section])
-                return_dict['result'] = result
-            else:
-                logger.warning("Missing data for reject sample.")
-                return_dict['result'] = False
-        except Exception as e:
-            logger.error(f"Error in reject_sample: {e}")
-            return_dict['result'] = False
-
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
-
-    # 创建子进程
-    p = multiprocessing.Process(
-        target=_worker_func,
-        args=(return_dict, problem, response)
-    )
-
-    try:
-        # 启动子进程
-        p.start()
-        # 设置最大等待时间20秒
-        p.join(timeout=20)
-
-        # 如果子进程还存活，说明超时
-        if p.is_alive():
-            logger.warning(problem)
-            logger.warning(response)
-            logger.warning("process_reject_sample exceeded the timeout limit of 20 seconds.")
-            p.terminate()   # 终止子进程
-            p.join()        # 回收子进程
-            return False
-
-        # 如果没超时就获取执行结果
-        result = return_dict.get('result', False)
-        return result
-
-    except Exception as e:
-        logger.error(f"Exception in process_reject_sample: {e}")
-        if p.is_alive():
-            p.terminate()
-            p.join()
-        return False
 def process_muti_reject_sample(problem,section,responses,correct_limit,logger,true_reject=True):
     try:
         if problem and problem.get(section) and responses:
@@ -221,10 +211,11 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
                     problem for problem, generated_response in tqdm(zip(try_problems, generated_responses), total=len(try_problems), desc="Processing Problems")
                     if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger,true_reject=true_reject)
                 ]
+                show_reject_result(reject_sampled_problems,logger)
             logger.info(f"{len(reject_sampled_problems)} problems pass reject sample.")
             logger.info(f" {len(try_problems)- len(reject_sampled_problems)} problems fail in reject sample.")
             
-            show_reject_result(reject_sampled_problems,logger)
+            
             if enable_compare:
                 input_texts = [
                             tokenizer.apply_chat_template(
@@ -284,7 +275,7 @@ def main():
     logger.info("Model loaded successfully.")
     data_path="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json"
     with open(data_path, 'r', encoding='utf-8') as f:
-        problems = json.load(f)[:2]
+        problems = json.load(f)
         if data_path =="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json":
             data_list=[]
             for data in problems:
