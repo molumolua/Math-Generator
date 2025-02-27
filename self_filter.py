@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
+os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 import time
 import logging
@@ -293,7 +293,7 @@ def main():
                     if problem['complex_problem'] != problem['original_problem']:
                         data_list.append(problem)
             problems=data_list
-    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['complex_problem','complex_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],true_reject=False,enable_compare=False)
+    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['original_problem','original_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],true_reject=False,enable_compare=False)
     output_path="/data/xucaijun/New/Math-Generator/outputs/qwen7b-test.json"
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
