@@ -366,6 +366,9 @@ Please provide the following sections in your answer:
 2. **Complexified Solution**:
    - Present the complexified solution in a logical sequence, ensuring the correctness.
    - Ensure that the final answer is enclosed within \\boxed{{}}.
+
+**Format Requirements**:
+- Use **bold** formatting for each section title.
 """
 
 
