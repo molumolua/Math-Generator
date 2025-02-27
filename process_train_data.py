@@ -27,7 +27,7 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data",se
                         },
                         {
                             "role": "assistant",
-                            "content": "<think>\n{}\n</think>\n\n**Complexified Problem**:\n{}\n\n**Complexified Solution**:\n{}\n".format(data['complexify_process'],data['original_problem'],data['original_solution'])
+                            "content": "<think>\n{}\n</think>\n\n**Complexified Problem**:\n{}\n\n**Complexified Solution**:\n{}\n".format(data['test_complex_think'],data['original_problem'],data['original_solution'])
                         }
                     ]
                 }
@@ -70,17 +70,30 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data",se
     return problems
 def main():
     now_path="/data/xucaijun/New/Math-Generator/outputs/second_iter_deepseek_answer.json"
-    result_path="/data/xucaijun/New/Math-Generator/outputs/second_iter_test.json"
+    result_path="/data/xucaijun/New/Math-Generator/outputs/model_complex_train.json"
     file_path = os.path.join(now_path)
+    problems=[]
+
+    file_path="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json"
     with open(file_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
-        # problems=[ problem for problem in data_list if problem['value']==True]
-        problems=[]
         for data in data_list:
             for problem in data:
                 if problem['complex_problem'] != problem['original_problem']:
                     problems.append(problem)
-        process_train_data(problems,output_path=result_path,prompt_type="qwen_math",sections=['complex_problem','complex_solution'])
+
+
+    # file_path="/data/xucaijun/New/Math-Generator/deepseek-math/1/simplify_problem.json"
+    # with open(file_path, 'r', encoding='utf-8') as f:
+    #     data_list = json.load(f)
+    #     for data in data_list:
+    #         tmp_key=[]
+    #         for problem in data:
+    #             if problem['problem'] != problem['original_problem'] and problem['problem'] not in tmp_key:
+    #                 tmp_key.append(problem['problem'])
+    #                 problems.append(problem)
+
+    process_train_data(problems,output_path=result_path,prompt_type="qwen_math",sections=['complex_problem','complex_solution'])
     # problems = load_simplify_problems()
     # print(len(problems))
     # process_train_data(problems,output_path=result_path,prompt_type="qwen_math")

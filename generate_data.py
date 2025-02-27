@@ -30,9 +30,9 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          enable_filter=True,
          use_chat_templete=True,
          device="cuda",
-         input_path="/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json",
-         output_path="./outputs/second_iter_deepseek_answer.json",
-         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/SelfThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
+         input_path="/data/xucaijun/New/Math-Generator/deepseek-math/0/math_output_deepseek.json",
+         output_path="./outputs/newthink_first_iter_deepseek_answer.json",
+         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/NewThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
 
@@ -121,7 +121,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
                 }
                 output_list.append(output_object)
         if enable_filter:
-            output_list=self_filter(model,tokenizer,output_list,logger,batch_size=N*batch_size)
+            output_list=self_filter(model,tokenizer,output_list,logger,batch_size=N*batch_size,N=1)
         output_list=process_output_data(output_list)
         # Save the output to a JSON file
         total_list+=output_list
