@@ -25,7 +25,6 @@ import multiprocessing
 
 import concurrent.futures
 import time
-
 # def process_reject_sample(problem, response, logger):
 #     def reject_sample_with_timeout():
 #         if problem and problem['complex_solution'] and response:
@@ -285,7 +284,7 @@ def main():
     logger.info("Model loaded successfully.")
     data_path="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json"
     with open(data_path, 'r', encoding='utf-8') as f:
-        problems = json.load(f)[:100]
+        problems = json.load(f)[:2]
         if data_path =="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json":
             data_list=[]
             for data in problems:

@@ -30,9 +30,9 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          enable_filter=True,
          use_chat_templete=True,
          device="cuda",
-         input_path="/data/xucaijun/New/Math-Generator/deepseek-math/0/math_output_deepseek.json",
-         output_path="./outputs/newthink_first_iter_deepseek_answer.json",
-         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/NewThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
+         input_path=None,
+         output_path="./outputs/raw_first_iter_deepseek_answer.json",
+         model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
 
@@ -52,12 +52,14 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
                         'solution':data[0]['complex_solution']})
                 problems=data_list
     else:
-        problems = load_simplify_problems()
+        problems = load_simplify_problems(data_name="DEEPSEEK")
+    
+    problems = problems[:2]
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
-    model = LLM(model_name_or_path, device=device,tensor_parallel_size=8,enforce_eager=False,gpu_memory_utilization=0.95)
+    model = LLM(model_name_or_path, device=device,tensor_parallel_size=4,pipeline_parallel_size=1,enforce_eager=False,gpu_memory_utilization=0.95,dtype="bfloat16")
     if use_chat_templete:
         tokenizer = AutoTokenizer.from_pretrained(
                     model_name_or_path, trust_remote_code=True
@@ -121,7 +123,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
                 }
                 output_list.append(output_object)
         if enable_filter:
-            output_list=self_filter(model,tokenizer,output_list,logger,batch_size=N*batch_size,N=1)
+            output_list=self_filter(model,tokenizer,output_list,logger,batch_size=N*batch_size,N=1,enable_compare=True)
         output_list=process_output_data(output_list)
         # Save the output to a JSON file
         total_list+=output_list
