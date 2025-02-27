@@ -100,20 +100,26 @@ def process_reject_sample(problem, section,response, logger):
             p.terminate()
             p.join()
         return False
-def process_muti_reject_sample(problem,section,responses,correct_limit,logger):
+def process_muti_reject_sample(problem,section,responses,correct_limit,logger,true_reject=True):
     try:
         if problem and problem.get(section) and responses:
             # 如果你还需要传 logger 或其它参数，也可一并加入
             result = reject_muti_sample(responses,problem[section])
             problem['correct_num']=result
+            if not true_reject:
+                return True
             return result>=correct_limit
         else:
             logger.warning("Missing data for reject sample.")
             problem['correct_num']=0
+            if not true_reject:
+                return True
             return False
     except Exception as e:
         logger.error(f"Error in reject_sample: {e}")
         problem['correct_num']=0
+        if not true_reject:
+                return True
         return False
 def process_compare(problem, response1,response2,logger):
     try:
@@ -147,6 +153,13 @@ def process_compare(problem, response1,response2,logger):
 def process_think(problem,response):
     problem['think_solution']=response
     return problem
+def show_reject_result(problems,logger):
+    cnt =0
+    correct_num=0
+    for problem in problems:
+        cnt+=1
+        correct_num+=problem['correct_num']
+    logger.info(f"avg correct num is {correct_num/cnt}")
 def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
          max_tokens=32768,
          device="cuda",
@@ -158,7 +171,8 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
          batch_size=512,
          N=5,
          correct_limit=3,
-         enable_compare = True
+         enable_compare = True,
+         true_reject =True
          ):
 
     # Define sampling parameters
@@ -206,11 +220,12 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
                 generated_responses = [[generated_response.outputs[i].text for i in range(N)]for generated_response in generated_responses]
                 reject_sampled_problems = [
                     problem for problem, generated_response in tqdm(zip(try_problems, generated_responses), total=len(try_problems), desc="Processing Problems")
-                    if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger)
+                    if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger,true_reject=true_reject)
                 ]
             logger.info(f"{len(reject_sampled_problems)} problems pass reject sample.")
             logger.info(f" {len(try_problems)- len(reject_sampled_problems)} problems fail in reject sample.")
             
+            show_reject_result(reject_sampled_problems,logger)
             if enable_compare:
                 input_texts = [
                             tokenizer.apply_chat_template(
@@ -260,6 +275,7 @@ def main():
     logger = set_logger.setup_logger()
     logger.info("Starting main processing loop.")
     model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"
+    model_name_or_path="/data/modelscope/hub/Qwen/Qwen2.5-7B-Instruct"
      # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
     model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=4)
@@ -267,16 +283,17 @@ def main():
                 model_name_or_path, trust_remote_code=True
     )
     logger.info("Model loaded successfully.")
-    data_path="/data/xucaijun/New/Math-Generator/deepseek-math/1/simplify_problem.json"
+    data_path="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json"
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)[:100]
-        if data_path =="/data/xucaijun/New/Math-Generator/outputs/second_iter_deepseek_answer.json":
+        if data_path =="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json":
             data_list=[]
             for data in problems:
                 for problem in data:
-                    data_list.append(problem)
+                    if problem['complex_problem'] != problem['original_problem']:
+                        data_list.append(problem)
             problems=data_list
-    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['problem','solution'],original_section_names=['problem','solution'],complex_section_names=['original_problem','original_solution'])
+    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['complex_problem','complex_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],true_reject=False,enable_compare=False)
     output_path="/data/xucaijun/New/Math-Generator/outputs/qwen7b-test.json"
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
