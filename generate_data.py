@@ -4,7 +4,7 @@ from util import util, set_logger
 import csv
 import sys
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
+os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
 import random
 import math
 from tqdm import tqdm
