@@ -31,7 +31,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          use_chat_templete=True,
          device="cuda",
          input_path=None,
-         output_path="./outputs/raw_first_iter_deepseek_answer.json",
+         output_path="./outputs/tmp.json",
          model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
@@ -54,7 +54,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
     else:
         problems = load_simplify_problems(data_name="DEEPSEEK")
     
-    problems = problems[:2]
+    problems = problems
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
@@ -114,14 +114,15 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
                                                                         "Complexified Problem", 
                                                                         "Complexified Solution"], 
                                                                         logger=logger)
-                output_object = {
-                    "original_problem": problem['problem'],
-                    "original_solution": problem['solution'],
-                    "complex_problem": complex_problem,
-                    "complex_solution": complex_solution,
-                    "response": response
-                }
-                output_list.append(output_object)
+                if complex_solution and complex_problem:
+                    output_object = {
+                        "original_problem": problem['problem'],
+                        "original_solution": problem['solution'],
+                        "complex_problem": complex_problem,
+                        "complex_solution": complex_solution,
+                        "response": response
+                    }
+                    output_list.append(output_object)
         if enable_filter:
             output_list=self_filter(model,tokenizer,output_list,logger,batch_size=N*batch_size,N=1,enable_compare=True)
         output_list=process_output_data(output_list)
