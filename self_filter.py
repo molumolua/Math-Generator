@@ -35,7 +35,7 @@ import time
 #     except Exception as e:
 #         logger.error(f"Error in reject_sample: {e}")
 #         return False
-def process_reject_sample(problem, section,response, logger):
+def process_reject_sample(problem, section,response, logger,timeout=10):
     """
     在单独的进程中执行reject_sample相关的操作，
     如果超过设定的超时时间（默认为10秒），直接杀死子进程并返回False
@@ -68,13 +68,13 @@ def process_reject_sample(problem, section,response, logger):
         # 启动子进程
         p.start()
         # 设置最大等待时间20秒
-        p.join(timeout=10)
+        p.join(timeout=timeout)
 
         # 如果子进程还存活，说明超时
         if p.is_alive():
             logger.warning(problem)
             logger.warning(response)
-            logger.warning("process_reject_sample exceeded the timeout limit of 20 seconds.")
+            logger.warning(f"process_reject_sample exceeded the timeout limit of {timeout} seconds.")
             p.terminate()   # 终止子进程
             p.join()        # 回收子进程
             return False
