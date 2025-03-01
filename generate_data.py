@@ -122,7 +122,10 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
                         "complex_solution": complex_solution,
                         "response": response
                     }
-                    output_list.append(output_object)
+                    output_list.append(output_object)          
+        with open(output_path, 'w', encoding='utf-8') as output_json:
+            json.dump(total_list, output_json, ensure_ascii=False, indent=4)
+        
         if enable_filter:
             output_list=self_filter(model,tokenizer,output_list,logger,batch_size=N*batch_size,N=1,enable_compare=True)
         output_list=process_output_data(output_list)
