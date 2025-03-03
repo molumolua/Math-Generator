@@ -69,12 +69,12 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data",se
             json.dump(problems, output_json, ensure_ascii=False, indent=4)
     return problems
 def main():
-    now_path="/data/xucaijun/New/Math-Generator/outputs/second_iter_deepseek_answer.json"
-    result_path="/data/xucaijun/New/Math-Generator/outputs/model_complex_train.json"
+    now_path="/data/xucaijun/New/Math-Generator/outputs/tmp.json"
+    result_path="/data/xucaijun/New/Math-Generator/outputs/raw_complex_train.json"
     file_path = os.path.join(now_path)
     problems=[]
 
-    file_path="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json"
+    file_path="/data/xucaijun/New/Math-Generator/outputs/tmp.json"
     with open(file_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
         for data in data_list:
@@ -82,6 +82,7 @@ def main():
                 if problem['complex_problem'] != problem['original_problem']:
                     problems.append(problem)
 
+    print(f"len:{len(problems)}")
 
     # file_path="/data/xucaijun/New/Math-Generator/deepseek-math/1/simplify_problem.json"
     # with open(file_path, 'r', encoding='utf-8') as f:
