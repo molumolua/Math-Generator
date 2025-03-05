@@ -4,7 +4,7 @@ from util import util, set_logger
 import csv
 import sys
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
+import torch
 import random
 import math
 from tqdm import tqdm
@@ -30,12 +30,12 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          enable_filter=True,
          use_chat_templete=True,
          device="cuda",
-         input_path=None,
-         output_path="./outputs/tmp.json",
-         model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"):
+         input_path="/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json",
+         output_path="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json",
+         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/NewThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
-
+    logger.info(f"Device:{torch.cuda.device_count()}")
     # Load problems
     logger.info("Loading problems...")
     if input_path:
@@ -44,7 +44,8 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
             if input_path == "/data/xucaijun/New/Math-Generator/outputs/math_output_deepseek.json":
                 problems=[ problem for problem in problems if problem['value']==True]
                 problems =[process_problem(problem) for problem in problems ]
-            elif input_path == '/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json':
+            elif input_path == '/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json' or input_path=='./outputs/tmp.json'\
+                or input_path=="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json":
                 data_list=[]
                 for data in problems:
                     data_list.append({

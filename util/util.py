@@ -293,11 +293,9 @@ def find_position(section, next_section, section_list, title_list, matches, answ
         logger.debug(f"Finding position for section '{section}' and next_section '{next_section}' starting from index {begin}")
         start = -1
         end = -1
-
         # 查找当前章节的位置
-        for i in range(begin, len(title_list)):
+        for i in range(len(title_list)-1,-1,-1):
             if title_list[i] == section_list[section]:
-                begin = i + 1
                 start = matches[i].end()
                 logger.debug(f"Found start of section '{section_list[section]}' at position {start}")
                 break
@@ -307,15 +305,37 @@ def find_position(section, next_section, section_list, title_list, matches, answ
 
         # 查找下一个章节的位置（如果有的话）
         if next_section < len(section_list):
-            for i in range(begin, len(title_list)):
+            for i in range(len(title_list)-1,-1,-1):
                 if title_list[i] == section_list[next_section]:
-                    begin = i
                     end = matches[i].start()
                     logger.debug(f"Found end of section '{section_list[section]}' at position {end}")
                     break
         else:
             end = answer_len  # 如果没有下一个章节，则使用提供的 `answer_len` 作为结束位置。
             logger.debug(f"No next section. Using answer_len {answer_len} as end position.")
+
+        # # 查找当前章节的位置
+        # for i in range(begin, len(title_list)):
+        #     if title_list[i] == section_list[section]:
+        #         begin = i + 1
+        #         start = matches[i].end()
+        #         logger.debug(f"Found start of section '{section_list[section]}' at position {start}")
+        #         break
+        # if start == -1:
+        #     logger.error(f"Section '{section_list[section]}' not found in the title list.")
+        #     return start, end, begin
+
+        # # 查找下一个章节的位置（如果有的话）
+        # if next_section < len(section_list):
+        #     for i in range(begin, len(title_list)):
+        #         if title_list[i] == section_list[next_section]:
+        #             begin = i
+        #             end = matches[i].start()
+        #             logger.debug(f"Found end of section '{section_list[section]}' at position {end}")
+        #             break
+        # else:
+        #     end = answer_len  # 如果没有下一个章节，则使用提供的 `answer_len` 作为结束位置。
+        #     logger.debug(f"No next section. Using answer_len {answer_len} as end position.")
 
         if end == -1 and next_section < len(section_list):
             logger.error(f"Next section '{section_list[next_section]}' not found in the title list.")
