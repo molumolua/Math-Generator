@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 import time
 import logging
@@ -264,30 +264,62 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
         logger.error(f"Error :{e}")
     return output_list
 
+def test_exist(pattern,problems,section):
+    for problem in problems:
+        if(problem[section]==pattern):
+            return problem
+    return None
 def main():
     logger = set_logger.setup_logger()
     logger.info("Starting main processing loop.")
     model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"
     model_name_or_path="/data/modelscope/hub/Qwen/Qwen2.5-7B-Instruct"
+    model_name_or_path="/data/modelscope/hub/Qwen/Qwen2___5-0___5B-Instruct"
+
+    model_name_or_path="/data/modelscope/hub/Qwen/Qwen2___5-32B-Instruct"
      # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
-    model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=4)
+    model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=4,dtype="bfloat16")
     tokenizer = AutoTokenizer.from_pretrained(
                 model_name_or_path, trust_remote_code=True
     )
     logger.info("Model loaded successfully.")
+
     data_path="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json"
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)
         if data_path =="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json":
             data_list=[]
             for data in problems:
-                for problem in data:
-                    if problem['complex_problem'] != problem['original_problem']:
-                        data_list.append(problem)
+                data_list.append(data[0])
             problems=data_list
-    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['original_problem','original_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],true_reject=False,enable_compare=False)
-    output_path="/data/xucaijun/New/Math-Generator/outputs/qwen7b-test.json"
+    random.seed(0)
+    random.shuffle(problems)
+
+    data_path_2="/data/xucaijun/New/Math-Generator/outputs/tmp.json"
+    with open(data_path_2, 'r', encoding='utf-8') as f:
+        problems_2 = json.load(f)
+        data_list=[]
+        for data in problems_2:
+            data_list.append(data[0])
+        problems_2 =data_list
+    
+    test_cnt=100
+    test_problems_1=[]
+    test_problems_2=[]
+    for problem in problems:
+        test_problem=test_exist(problem['original_problem'],problems_2,'original_problem')
+        if test_problem:
+            test_problems_1.append(problem)
+            test_problems_2.append(test_problem)
+
+            if len(test_problems_1)>=test_cnt:
+                break
+    
+
+    output_list=self_filter(model,tokenizer,test_problems_2,logger,test_section_names=['original_problem','original_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],\
+                            N=10,true_reject=False,enable_compare=False)
+    output_path="/data/xucaijun/New/Math-Generator/outputs/test_problem_1_qwen7b-test.json"
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
 if __name__ == "__main__":

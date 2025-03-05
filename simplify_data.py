@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
+
 import time
 import logging
 import json
