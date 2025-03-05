@@ -285,39 +285,40 @@ def main():
     )
     logger.info("Model loaded successfully.")
 
-    data_path="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json"
+    data_path="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json"
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)
-        if data_path =="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json":
+        if data_path =="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json":
             data_list=[]
             for data in problems:
                 data_list.append(data[0])
             problems=data_list
     random.seed(0)
     random.shuffle(problems)
+    problems=problems[:100]
 
-    data_path_2="/data/xucaijun/New/Math-Generator/outputs/tmp.json"
-    with open(data_path_2, 'r', encoding='utf-8') as f:
-        problems_2 = json.load(f)
-        data_list=[]
-        for data in problems_2:
-            data_list.append(data[0])
-        problems_2 =data_list
+    # data_path_2="/data/xucaijun/New/Math-Generator/outputs/tmp_2.json"
+    # with open(data_path_2, 'r', encoding='utf-8') as f:
+    #     problems_2 = json.load(f)
+    #     data_list=[]
+    #     for data in problems_2:
+    #         data_list.append(data[0])
+    #     problems_2 =data_list
     
-    test_cnt=100
-    test_problems_1=[]
-    test_problems_2=[]
-    for problem in problems:
-        test_problem=test_exist(problem['original_problem'],problems_2,'original_problem')
-        if test_problem:
-            test_problems_1.append(problem)
-            test_problems_2.append(test_problem)
+    # test_cnt=100
+    # test_problems_1=[]
+    # test_problems_2=[]
+    # for problem in problems:
+    #     test_problem=test_exist(problem['original_problem'],problems_2,'original_problem')
+    #     if test_problem:
+    #         test_problems_1.append(problem)
+    #         test_problems_2.append(test_problem)
 
-            if len(test_problems_1)>=test_cnt:
-                break
+    #         if len(test_problems_1)>=test_cnt:
+    #             break
     
 
-    output_list=self_filter(model,tokenizer,test_problems_2,logger,test_section_names=['original_problem','original_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],\
+    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['original_problem','original_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],\
                             N=10,true_reject=False,enable_compare=False)
     output_path="/data/xucaijun/New/Math-Generator/outputs/test_problem_1_qwen7b-test.json"
     with open(output_path, 'w', encoding='utf-8') as f:
