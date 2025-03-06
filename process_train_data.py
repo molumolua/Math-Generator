@@ -69,12 +69,12 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data",se
             json.dump(problems, output_json, ensure_ascii=False, indent=4)
     return problems
 def main():
-    now_path="/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json"
-    result_path="/data/xucaijun/New/Math-Generator/outputs/open-r1-first_iter.json"
+    now_path="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json"
+    result_path="/data/xucaijun/New/Math-Generator/outputs/open-r1-second_iter.json"
     file_path = os.path.join(now_path)
     problems=[]
 
-    file_path="/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json"
+    file_path="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json"
     with open(file_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
         for data in data_list:
