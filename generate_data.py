@@ -32,7 +32,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          device="cuda",
          input_path="./deepseek-math/0/math_output_deepseek.json",
          output_path="./outputs/newsecond_iter_deepseek_answer.json",
-         model_name_or_path="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"):
+         model_name_or_path="deepseek-ai/Deepseek-R1-Distill-Qwen-7B"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
     logger.info(f"Device:{torch.cuda.device_count()}")
