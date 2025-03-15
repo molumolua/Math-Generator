@@ -482,7 +482,7 @@ The output should include the following sections:
 """
 
 def createThinkSimpleQuestionPrompt(problem, solution):
-    prompt = base_instruction_think.format(problem=problem,solution=solution)
+    prompt = base_instruction_think.format(Question=problem,Answer=solution)
     return prompt
 
 
@@ -563,5 +563,5 @@ def createDetailedCompareThinkPrompt(problem1, answer1, problem2, answer2):
 
 
 def createNewComplexQuestionPrompt(problem, solution):
-    prompt = complex_think_prompt_now.format(question=problem,answer=solution)
+    prompt = complex_think_prompt_now.format(Question=problem,Answer=solution)
     return prompt
