@@ -55,7 +55,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
     else:
         problems = load_simplify_problems(data_name="DEEPSEEK")
     
-    problems = problems
+    problems = problems[:50]
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
