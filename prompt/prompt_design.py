@@ -456,32 +456,35 @@ def createAddThinkPrompt(problem_1, solution_1,problem_2,solution_2):
 
 
 base_instruction_think = """
-Your task is to transform the **Original Problem** into one different and more accessible problem by simplifying core mathematical concepts or techniques used in **Original Solution**.
+Your task is to simplify the **Original Problem** by identifying and breaking down the core mathematical concepts or techniques used in the **Original Solution**. 
+Therefore, your goal is to create a **Simplified Problem** that is more accessible, along with a corresponding **Simplified Solution** that uses more basic methods.
 
-** Simplification Criteria**:
-- Break down the original solution and identify significant core concepts or techniques that can be simplified, replaced, or deleted to generate a new problem.
-- Clearly explain how you are reducing complexity or using more basic methods.
-- Adjust the original problem statement to align with the simplified approach.
+**Original Problem**:
+{problem}
 
-Please provide the following sections in your answer:
+**Original Solution**:
+{solution}
+
+**Simplification Criteria**:
+- Break down the **Original Solution** and identify key concepts or techniques that can be simplified, replaced, or deleted to create a new problem.
+- Reduce the complexity by applying more basic methods or replacing advanced concepts with simpler ones.
   
+The output should include the following sections:
+
 1. **Simplified Problem**:
    - Provide the **revised** problem statement without any introductory or explanatory sentences.
 
 2. **Simplified Solution**:
-   - Present the simplified solution in a logical sequence, ensuring the correctness.
+   - Present the simplified solution step by step, ensuring it remains correct and logically sound.
+   - Ensure that the final answer is enclosed within \\boxed{{}}.
 
 **Format Requirements**:
 - Use **bold** formatting for each section title.
-- Ensure that the final answer is enclosed within \\boxed{{}}.
 """
 
 def createThinkSimpleQuestionPrompt(problem, solution):
-    prompt = base_instruction_think
-    prompt += "\n\n**Original Problem**:\n{}\n".format(problem)
-    prompt += "\n**Original Solution**:\n{}\n".format(solution)
+    prompt = base_instruction_think.format(problem=problem,solution=solution)
     return prompt
-
 
 
 compare_think_prompt='''
@@ -504,6 +507,32 @@ def createCompareThinkPrompt(problem1, answer1, problem2, answer2):
     prompt +="Please Analysis the relative difficulty between the given problems."
     return prompt
 
+complex_think_prompt_now='''
+Your task is to increase the difficulty of the **Original Problem** by identifying and incorporating additional mathematical concepts or techniques used in the **Original Solution**. 
+Therefore, your goal is to create a **Challenging Problem** that introduces more advanced concepts, along with a corresponding **Challenging Solution** that applies more sophisticated methods.
+
+**Original Problem**:
+{problem}
+
+**Original Solution**:
+{solution}
+
+**Increased Difficulty Criteria**:
+- Break down the **Original Solution** and identify key concepts or techniques that can be extended, enhanced, or replaced with more advanced ones to create a new problem.
+- Increase the difficulty by incorporating additional mathematical methods, concepts, or theories that enhance the original approach.
+
+The output should include the following sections:
+
+1. **Challenging Problem**:
+   - Provide the **revised** problem statement that introduces more complexity by adding new elements, constraints, or advanced concepts.
+
+2. **Challenging Solution**:
+   - Present the more difficult solution step by step, ensuring it logically incorporates the more advanced methods or techniques.
+   - Ensure that the final answer is enclosed within \\boxed{{}}.
+
+**Format Requirements**:
+- Use **bold** formatting for each section title.
+'''
 
 compare_think_prompt_test='''
 You are an expert in evaluating and comparing mathematical problems based on their difficulty.
@@ -532,4 +561,9 @@ def createDetailedCompareThinkPrompt(problem1, answer1, problem2, answer2):
     prompt += f"\n**Problem 1**: {problem1}\n**Solution 1**: {answer1}\n"
     prompt += f"\n**Problem 2**: {problem2}\n**Solution 2**: {answer2}\n"
     prompt +="Please Analysis the relative difficulty between the given problems."
+    return prompt
+
+
+def createNewComplexQuestionPrompt(problem, solution):
+    prompt = complex_think_prompt_now.format(problem=problem,solution=solution)
     return prompt

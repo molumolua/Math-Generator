@@ -352,16 +352,16 @@ def parse_answer(answer_text, sections, logger):
         logger.debug("Parsing answer text.")
         extracted = {section: "" for section in sections}
 
-        # 匹配标题部分的正则表达式（考虑冒号在外和冒号在内两种情况）
+        # 匹配标题部分的正则表达式（支持以###或更多#开头的格式）
         pattern = re.compile(
-            r'^\s*(?:\d+\.\s*|\d+\s*|\*+\s*|\-+\s*)?\*\*(?:\d+\.\s*|\d+\s*|\*+\s*|\-+\s*)?(.*?)\*\*:?', re.MULTILINE
+            r'^\s*(?:\d+\.\s*|\d+\s*|\*+\s*|\-+\s*|#+\s*)?\*\*(?:\d+\.\s*|\d+\s*|\*+\s*|\-+\s*|#+\s*)?(.*?)\*\*:?', re.MULTILINE
         )
         matches = list(pattern.finditer(answer_text))
 
         # 如果没有找到匹配，再尝试另一种格式的正则表达式
         if not matches:
             pattern = re.compile(
-                r'^\s*(?:\d+\.\s*|\d+\s*|\*+\s*|\-+\s*)?\*\*(?:\d+\.\s*|\d+\s*|\*+\s*|\-+\s*)?(.*?):\*\*', re.MULTILINE
+                r'^\s*(?:\d+\.\s*|\d+\s*|\*+\s*|\-+\s*|#+\s*)?\*\*(?:\d+\.\s*|\d+\s*|\*+\s*|\-+\s*|#+\s*)?(.*?):\*\*', re.MULTILINE
             )
             matches = list(pattern.finditer(answer_text))
 
