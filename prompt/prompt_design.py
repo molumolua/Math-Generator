@@ -456,26 +456,25 @@ def createAddThinkPrompt(problem_1, solution_1,problem_2,solution_2):
 
 
 base_instruction_think = """
-Your task is to simplify the **Original Problem** by identifying and breaking down the core mathematical concepts or techniques used in the **Original Solution**. 
-Therefore, your goal is to create a **Simplified Problem** that is more accessible, along with a corresponding **Simplified Solution** that uses more basic methods.
-
-**Original Problem**:
-{problem}
-
-**Original Solution**:
-{solution}
+Your task is to transform the **Original Question** and corresponding **Original Answer** into a simpler **Simplified Question** and corresponding **Simplified Answer*.
 
 **Simplification Criteria**:
-- Break down the **Original Solution** and identify key concepts or techniques that can be simplified, replaced, or deleted to create a new problem.
+- Break down the **Original Answer** and identify key concepts or techniques that can be simplified, replaced, or deleted to create a new question.
 - Reduce the complexity by applying more basic methods or replacing advanced concepts with simpler ones.
-  
+
+**Original Question**:
+{Question}
+
+**Original Answer**:
+{Answer}
+
 The output should include the following sections:
 
-1. **Simplified Problem**:
-   - Provide the **revised** problem statement without any introductory or explanatory sentences.
+1. **Simplified Question**:
+   - Provide the **revised** Question statement without any introductory or explanatory sentences.
 
-2. **Simplified Solution**:
-   - Present the simplified solution step by step, ensuring it remains correct and logically sound.
+2. **Simplified Answer**:
+   - Present the simplified Answer step by step, ensuring it remains correct and logically sound.
    - Ensure that the final answer is enclosed within \\boxed{{}}.
 
 **Format Requirements**:
@@ -508,26 +507,25 @@ def createCompareThinkPrompt(problem1, answer1, problem2, answer2):
     return prompt
 
 complex_think_prompt_now='''
-Your task is to increase the difficulty of the **Original Problem** by identifying and incorporating additional mathematical concepts or techniques used in the **Original Solution**. 
-Therefore, your goal is to create a **Challenging Problem** that introduces more advanced concepts, along with a corresponding **Challenging Solution** that applies more sophisticated methods.
-
-**Original Problem**:
-{problem}
-
-**Original Solution**:
-{solution}
+Your task is to transform the **Original Question** and corresponding **Original Answer** into a more difficult **Hard Question** and corresponding **Hard Answer**.
 
 **Increased Difficulty Criteria**:
-- Break down the **Original Solution** and identify key concepts or techniques that can be extended, enhanced, or replaced with more advanced ones to create a new problem.
+- Break down the **Original Answer** and identify key concepts or techniques that can be extended, enhanced, or replaced with more advanced ones to create a new question.
 - Increase the difficulty by incorporating additional mathematical methods, concepts, or theories that enhance the original approach.
+
+**Original Question**:
+{Question}
+
+**Original Answer**:
+{Answer}
 
 The output should include the following sections:
 
-1. **Challenging Problem**:
-   - Provide the **revised** problem statement that introduces more complexity by adding new elements, constraints, or advanced concepts.
+1. **Hard Question**:
+   - Provide the **revised** Question statement that introduces more complexity by adding new elements, constraints, or advanced concepts.
 
-2. **Challenging Solution**:
-   - Present the more difficult solution step by step, ensuring it logically incorporates the more advanced methods or techniques.
+2. **Hard Answer**:
+   - Present the more difficult Answer step by step, ensuring it logically incorporates the more advanced methods or techniques.
    - Ensure that the final answer is enclosed within \\boxed{{}}.
 
 **Format Requirements**:

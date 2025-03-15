@@ -9,7 +9,7 @@ import random
 import math
 from tqdm import tqdm
 from data.data_loader import load_problems,load_simplify_problems
-from prompt.prompt_design import createComplexQuestionProcessPrompt,createComplexQuestionPrompt
+from prompt.prompt_design import createComplexQuestionProcessPrompt,createComplexQuestionPrompt,createNewComplexQuestionPrompt
 from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from filter_problems import filter_problems
@@ -30,8 +30,8 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          enable_filter=True,
          use_chat_templete=True,
          device="cuda",
-         input_path="/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json",
-         output_path="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json",
+         input_path="./deepseek-math/0/math_output_deepseek.json",
+         output_path="./outputs/newsecond_iter_deepseek_answer.json",
          model_name_or_path="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
@@ -41,11 +41,11 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
     if input_path:
         with open(input_path, 'r', encoding='utf-8') as f:
             problems = json.load(f)
-            if input_path == "/data/xucaijun/New/Math-Generator/outputs/math_output_deepseek.json":
+            if input_path == "./outputs/math_output_deepseek.json":
                 problems=[ problem for problem in problems if problem['value']==True]
                 problems =[process_problem(problem) for problem in problems ]
-            elif input_path == '/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json' or input_path=='./outputs/tmp.json'\
-                or input_path=="/data/xucaijun/New/Math-Generator/outputs/newthink_first_iter_deepseek_answer.json":
+            elif input_path == './outputs/first_iter_deepseek_answer.json' or input_path=='./outputs/tmp.json'\
+                or input_path=="./outputs/newthink_first_iter_deepseek_answer.json":
                 data_list=[]
                 for data in problems:
                     data_list.append({
@@ -87,7 +87,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
         if use_chat_templete:
             input_texts = [
                 tokenizer.apply_chat_template(
-                    [{"role": "user", "content": createComplexQuestionPrompt(problem['problem'], problem['solution'])}],
+                    [{"role": "user", "content": createNewComplexQuestionPrompt(problem['problem'], problem['solution'])}],
                     tokenize=False,
                     add_generation_prompt=True,
                 )
@@ -112,8 +112,8 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
             for response in responses:
                 complex_problem, complex_solution = util.parse_answer(response, 
                                                                         [
-                                                                        "Challenging Problem", 
-                                                                        "Challenging Solution"], 
+                                                                        "Hard Question", 
+                                                                        "Hard Answer"], 
                                                                         logger=logger)
                 if complex_solution and complex_problem:
                     output_object = {
