@@ -93,7 +93,10 @@ def process_muti_reject_sample(problem,section,responses,correct_limit,logger,tr
     try:
         if problem and problem.get(section) and responses:
             # 如果你还需要传 logger 或其它参数，也可一并加入
-            result = reject_muti_sample(responses,problem[section])
+            result=0
+            for response in responses:
+                if process_reject_sample(problem, section,response, logger,timeout=10):
+                    result+=1
             problem['correct_num']=result
             if not true_reject:
                 return True
@@ -247,7 +250,7 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
                 ]
             else:
                 generated_responses = model.generate(input_texts, sampling_params=sampling_params)
-                generated_responses = [[generated_response.outputs[i].text for i in range(N)]for generated_response in generated_responses]
+                generated_responses = [[generated_response.outputs[i].text for i in range(len(generated_response.outputs))]for generated_response in generated_responses]
                 reject_sampled_problems = [
                     problem for problem, generated_response in tqdm(zip(compared_problems, generated_responses), total=len(compared_problems), desc="Processing Problems")
                     if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger,true_reject=true_reject)
@@ -277,6 +280,9 @@ def main():
     model_name_or_path="/data/modelscope/hub/Qwen/Qwen2___5-0___5B-Instruct"
 
     model_name_or_path="/data/modelscope/hub/Qwen/Qwen2___5-32B-Instruct"
+
+
+    model_name_or_path="Qwen/Qwen2.5-Math-1.5B-Instruct"
      # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
     model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=4,dtype="bfloat16")
@@ -285,17 +291,19 @@ def main():
     )
     logger.info("Model loaded successfully.")
 
-    data_path="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json"
+    data_path="/home/bingxing2/home/scx8q73/jobs/test/Math-Generator/deepseek-math/0/math_output_deepseek.json"
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)
-        if data_path =="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json":
+        if data_path =="/home/bingxing2/home/scx8q73/jobs/test/Math-Generator/outputs/first_iter_deepseek_answer.json":
             data_list=[]
             for data in problems:
-                data_list.append(data[0])
+                for problem in data:
+                    if problem['complex_problem'] != problem['original_problem']:
+                        data_list.append(problem)
             problems=data_list
     random.seed(0)
     random.shuffle(problems)
-    problems=problems[:100]
+    problems=problems
 
     # data_path_2="/data/xucaijun/New/Math-Generator/outputs/tmp_2.json"
     # with open(data_path_2, 'r', encoding='utf-8') as f:
@@ -318,9 +326,9 @@ def main():
     #             break
     
 
-    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['original_problem','original_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],\
-                            N=10,true_reject=False,enable_compare=False)
-    output_path="/data/xucaijun/New/Math-Generator/outputs/test_problem_1_qwen7b-test.json"
+    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['problem','solution'],original_section_names=['problem','solution'],complex_section_names=['problem','solution'],\
+                            N=10,true_reject=False,enable_compare=False,batch_size=len(problems))
+    output_path="/home/bingxing2/home/scx8q73/jobs/test/Math-Generator/outputs/true_zero_iter_fenbu.json"
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
 if __name__ == "__main__":
