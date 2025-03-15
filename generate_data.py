@@ -32,7 +32,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          device="cuda",
          input_path="/data/xucaijun/New/Math-Generator/outputs/first_iter_deepseek_answer.json",
          output_path="/data/xucaijun/New/Math-Generator/outputs/newsecond_iter_deepseek_answer.json",
-         model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/NewThink-DeepSeek-R1-Distill-Qwen-32B/full/sft"):
+         model_name_or_path="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
     logger.info(f"Device:{torch.cuda.device_count()}")
@@ -112,8 +112,8 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
             for response in responses:
                 complex_problem, complex_solution = util.parse_answer(response, 
                                                                         [
-                                                                        "Complexified Problem", 
-                                                                        "Complexified Solution"], 
+                                                                        "Challenging Problem", 
+                                                                        "Challenging Solution"], 
                                                                         logger=logger)
                 if complex_solution and complex_problem:
                     output_object = {
