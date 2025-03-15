@@ -31,7 +31,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          use_chat_templete=True,
          device="cuda",
          input_path="./deepseek-math/0/math_output_deepseek.json",
-         output_path="./outputs/newsecond_iter_deepseek_answer.json",
+         output_path="./outputs/7b-test.json",
          model_name_or_path="deepseek-ai/Deepseek-R1-Distill-Qwen-7B"):
     logger = set_logger.setup_logger()
     logger.info("Starting the process...")
