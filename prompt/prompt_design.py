@@ -469,7 +469,7 @@ Your task is to transform the **Original Question** and corresponding **Original
 {Answer}
 
 **Output Requirements**:
-The output should include the following sections:
+The output should include the following sections and use **bold** formatting for each section title:
 
 1. **Simplified Question**:
    - Provide the **revised** Question statement without any introductory or explanatory sentences.
@@ -477,9 +477,6 @@ The output should include the following sections:
 2. **Simplified Answer**:
    - Present the simplified Answer step by step, ensuring it remains correct and logically sound.
    - Ensure that the final answer is enclosed within \\boxed{{}}.
-
-**Format Requirements**:
-- Use **bold** formatting for each section title.
 """
 
 def createThinkSimpleQuestionPrompt(problem, solution):
@@ -521,7 +518,7 @@ Your task is to transform the **Original Question** and corresponding **Original
 {Answer}
 
 **Output Requirements**:
-The output should include the following sections:
+The output should include the following sections and use **bold** formatting for each section title:
 
 1. **Hard Question**:
    - Provide the **revised** Question statement that introduces more complexity by adding new elements, constraints, or advanced concepts.
@@ -530,8 +527,6 @@ The output should include the following sections:
    - Present the more difficult Answer step by step, ensuring it logically incorporates the more advanced methods or techniques.
    - Ensure that the final answer is enclosed within \\boxed{{}}.
 
-**Format Requirements**:
-- Use **bold** formatting for each section title.
 '''
 
 compare_think_prompt_test='''
