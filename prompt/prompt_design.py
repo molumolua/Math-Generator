@@ -563,5 +563,5 @@ def createDetailedCompareThinkPrompt(problem1, answer1, problem2, answer2):
 
 
 def createNewComplexQuestionPrompt(problem, solution):
-    prompt = complex_think_prompt_now.format(problem=problem,solution=solution)
+    prompt = complex_think_prompt_now.format(question=problem,answer=solution)
     return prompt
