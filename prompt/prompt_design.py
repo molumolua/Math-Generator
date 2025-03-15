@@ -468,6 +468,7 @@ Your task is to transform the **Original Question** and corresponding **Original
 **Original Answer**:
 {Answer}
 
+**Output Requirements**:
 The output should include the following sections:
 
 1. **Simplified Question**:
@@ -519,6 +520,7 @@ Your task is to transform the **Original Question** and corresponding **Original
 **Original Answer**:
 {Answer}
 
+**Output Requirements**:
 The output should include the following sections:
 
 1. **Hard Question**:

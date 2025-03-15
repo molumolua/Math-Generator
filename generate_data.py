@@ -27,7 +27,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
          max_tokens=32768,
          N=3,
          batch_size=-1,
-         enable_filter=True,
+         enable_filter=False,
          use_chat_templete=True,
          device="cuda",
          input_path="./deepseek-math/0/math_output_deepseek.json",
@@ -55,7 +55,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
     else:
         problems = load_simplify_problems(data_name="DEEPSEEK")
     
-    problems = problems[:50]
+    problems = problems[:10]
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
