@@ -408,8 +408,15 @@ def extract_think_and_after(text):
         after_think = match.group(2).strip()
         return think_content, after_think
     else:
-        # 如果没有匹配到，就返回 (None, None)
-        return None, None
+        pattern = r"(.*?)</think>(.*)" #针对7B模型没有<think>前缀
+        match = re.search(pattern, text, re.DOTALL)
+        if match:
+            think_content = match.group(1).strip()
+            after_think = match.group(2).strip()
+            return think_content, after_think
+        else:
+            # 如果没有匹配到，就返回 (None, None)
+            return None, None
     
 
 
