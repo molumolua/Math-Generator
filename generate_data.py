@@ -110,7 +110,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
         # Process the generated responses
         for problem, responses in zip(now_problems, tmp_responses):
             for response in responses:
-                complex_problem, complex_solution = util.parse_answer(response, 
+                complex_problem, complex_solution = util.parse_answer(extract_think_and_after(response)[1], 
                                                                         [
                                                                         "Hard Question", 
                                                                         "Hard Answer"], 
