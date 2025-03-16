@@ -25,7 +25,7 @@ def process_problem(problem):
     }
 def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complexification Process**"],
          max_tokens=32768,
-         N=3,
+         N=1,
          batch_size=-1,
          enable_filter=False,
          use_chat_templete=True,
