@@ -291,10 +291,10 @@ def main():
     )
     logger.info("Model loaded successfully.")
 
-    data_path="/home/bingxing2/home/scx8q73/jobs/test/Math-Generator/deepseek-math/0/math_output_deepseek.json"
+    data_path="./outputs/7b-test.json"
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)
-        if data_path =="/home/bingxing2/home/scx8q73/jobs/test/Math-Generator/outputs/first_iter_deepseek_answer.json":
+        if data_path =="./outputs/7b-test.json":
             data_list=[]
             for data in problems:
                 for problem in data:
@@ -326,9 +326,9 @@ def main():
     #             break
     
 
-    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['problem','solution'],original_section_names=['problem','solution'],complex_section_names=['problem','solution'],\
+    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['complex_problem','complex_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],\
                             N=10,true_reject=False,enable_compare=False,batch_size=len(problems))
-    output_path="/home/bingxing2/home/scx8q73/jobs/test/Math-Generator/outputs/true_zero_iter_fenbu.json"
+    output_path="./outputs/7b-generate-1.5b-reject.json"
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
 if __name__ == "__main__":
