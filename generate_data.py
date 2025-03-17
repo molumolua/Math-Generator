@@ -55,13 +55,13 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
     else:
         problems = load_simplify_problems(data_name="DEEPSEEK")
     
-    problems = problems
+    problems = problems[:10]
     logger.info(f"Loaded {len(problems)} problems.")
 
     # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
     model = LLM(model_name_or_path, device=device,tensor_parallel_size=4,pipeline_parallel_size=1,gpu_memory_utilization=0.95,enforce_eager=True,dtype="bfloat16",\
-                enable_chunked_prefill=True)
+                enable_chunked_prefill=True,max_num_seqs=4)
     if use_chat_templete:
         tokenizer = AutoTokenizer.from_pretrained(
                     model_name_or_path, trust_remote_code=True
@@ -109,7 +109,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
         tmp_responses = model.generate(input_texts, sampling_params=sampling_params)
         tmp_responses = [[tmp_response.outputs[i].text for i in range(N)] for tmp_response in tmp_responses]
         # Process the generated responses
-        for problem, responses in zip(now_problems, tmp_responses):
+        for problem, responses in tqdm(zip(now_problems, tmp_responses)):
             for response in responses:
                 complex_problem, complex_solution = util.parse_answer(extract_think_and_after(response)[1], 
                                                                         [

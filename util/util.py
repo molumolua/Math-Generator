@@ -401,6 +401,8 @@ def extract_think_and_after(text):
                after_think 为 </think> 后的文本（若没匹配到返回 None）。
     """
     # 使用正则表达式，启用 DOTALL (re.DOTALL) 使 '.' 能匹配换行符
+    if "<think>" not in text:
+        text = "<think>" + text
     pattern = r"<think>(.*?)</think>(.*)"
     match = re.search(pattern, text, re.DOTALL)
     if match:
@@ -408,15 +410,8 @@ def extract_think_and_after(text):
         after_think = match.group(2).strip()
         return think_content, after_think
     else:
-        pattern = r"(.*?)</think>(.*)" #针对7B模型没有<think>前缀
-        match = re.search(pattern, text, re.DOTALL)
-        if match:
-            think_content = match.group(1).strip()
-            after_think = match.group(2).strip()
-            return think_content, after_think
-        else:
-            # 如果没有匹配到，就返回 (None, None)
-            return None, None
+        # 如果没有匹配到，就返回 (None, None)
+        return None, None
     
 
 
