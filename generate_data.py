@@ -60,8 +60,8 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>","\n**Complex
 
     # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
-    model = LLM(model_name_or_path, device=device,tensor_parallel_size=4,pipeline_parallel_size=1,gpu_memory_utilization=0.95,enforce_eager=True,dtype="bfloat16",\
-                enable_chunked_prefill=True,max_num_seqs=4)
+    model = LLM(model_name_or_path, device=device,tensor_parallel_size=4,pipeline_parallel_size=1,gpu_memory_utilization=0.95,dtype="bfloat16",\
+                enable_chunked_prefill=True,max_num_seqs=16)
     if use_chat_templete:
         tokenizer = AutoTokenizer.from_pretrained(
                     model_name_or_path, trust_remote_code=True
