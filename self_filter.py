@@ -296,8 +296,8 @@ def main():
         problems = json.load(f)
         if data_path =="./outputs/glm_data.json":
             data_list=[]
-            for data in problems:
-                for problem in data:
+            for problem in problems:
+                # for problem in data:
                     if problem['complex_problem'] != problem['original_problem']:
                         data_list.append(problem)
             problems=data_list
