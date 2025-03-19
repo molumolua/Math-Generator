@@ -54,7 +54,7 @@ def main(batch_size=1024,
     logger = setup_logger()
     logger.info("Starting main processing loop.")
     input_path ="./deepseek-math/0/math_output_deepseek.json"
-    output_path ="./outputs/glm_data.json"
+    output_path ="./outputs/glm_data-2.json"
     model="glm-4-plus"
 
     for iteration in range(start_iteration, max_iteration):

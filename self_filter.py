@@ -291,10 +291,10 @@ def main():
     )
     logger.info("Model loaded successfully.")
 
-    data_path="./outputs/7b-test.json"
+    data_path="./outputs/glm_data.json"
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)
-        if data_path =="./outputs/7b-test.json":
+        if data_path =="./outputs/glm_data.json":
             data_list=[]
             for data in problems:
                 for problem in data:
@@ -328,7 +328,7 @@ def main():
 
     output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['complex_problem','complex_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],\
                             N=10,true_reject=False,enable_compare=False,batch_size=len(problems))
-    output_path="./outputs/7b-generate-1.5b-reject.json"
+    output_path="./outputs/1-glm-generate-1.5b-reject.json"
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
 if __name__ == "__main__":
