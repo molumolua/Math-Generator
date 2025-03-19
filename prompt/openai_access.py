@@ -10,7 +10,7 @@ from multiprocessing import Pool
 from tqdm import tqdm
 from zhipuai import ZhipuAI
 # client = OpenAI(base_url=BASE_URL,api_key=OPENAI_API_KEY)
-client = ZhipuAI(api_key="b16a281aaee94aa1b89577f8077e6c89.1e2Asz8IgbgBHQXY")
+client = ZhipuAI(api_key="")
 def get_oai_completion(prompt,model,temperature,think=False,stream=False):
     try:
         response = client.chat.completions.create(
