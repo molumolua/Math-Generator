@@ -8,8 +8,10 @@ import logging
 from functools import partial
 from multiprocessing import Pool
 from tqdm import tqdm
-client = OpenAI(base_url=BASE_URL,api_key=OPENAI_API_KEY)
-def get_oai_completion(prompt,model,temperature,think=False,stream=True):
+from zhipuai import ZhipuAI
+# client = OpenAI(base_url=BASE_URL,api_key=OPENAI_API_KEY)
+client = ZhipuAI(api_key="b16a281aaee94aa1b89577f8077e6c89.1e2Asz8IgbgBHQXY")
+def get_oai_completion(prompt,model,temperature,think=False,stream=False):
     try:
         response = client.chat.completions.create(
             model=model,
@@ -103,7 +105,8 @@ def get_answer_from_chat_model(prompt, logger=None, eng='gpt-3.5-turbo', tempera
     """
     if eng not in [
         "gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k-0613","deepseek-reasoner",
-        "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-3.5-turbo-1106","gpt-4o","deepseek-ai/DeepSeek-R1","deepseek-r1"
+        "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-3.5-turbo-1106","gpt-4o","deepseek-ai/DeepSeek-R1","deepseek-r1",
+        "glm-4-plus"
     ]:
         raise ValueError(f"Unsupported model: {eng}")
 
