@@ -7,7 +7,7 @@ plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
 plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 
 # 2. 读取 JSON 文件
-with open(r'D:\\Research\\test\\7b-generate-1.5b-reject.json', 'r', encoding='utf-8') as f:
+with open(r'D:\\Research\\test\\1-glm-generate-1.5b-reject.json', 'r', encoding='utf-8') as f:
     data_list = json.load(f)
 
 # 3. 统计 correct_num 出现频次
