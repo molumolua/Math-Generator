@@ -456,7 +456,7 @@ def createAddThinkPrompt(problem_1, solution_1,problem_2,solution_2):
 
 
 base_instruction_think = """
-Your task is to transform the **Original Question** and corresponding **Original Answer** into a simpler **Simplified Question** and corresponding **Simplified Answer*.
+Your task is to transform the **Original Question** and corresponding **Original Answer** into a simpler **Simplified Question** and corresponding **Simplified Answer**.
 
 **Simplification Criteria**:
 - Break down the **Original Answer** and identify key concepts or techniques that can be simplified, replaced, or deleted to create a new question.
@@ -475,7 +475,7 @@ The output should include the following sections and use **bold** formatting for
    - Provide the **revised** Question statement without any introductory or explanatory sentences.
 
 2. **Simplified Answer**:
-   - Present the simplified Answer step by step, ensuring it remains correct and logically sound.
+   - Present the simplified answer step by step, ensuring it remains correct and logically sound.
    - Ensure that the final answer is enclosed within \\boxed{{}}.
 """
 
@@ -524,7 +524,7 @@ The output should include the following sections and use **bold** formatting for
    - Provide the **revised** Question statement that introduces more complexity by adding new elements, constraints, or advanced concepts.
 
 2. **Hard Answer**:
-   - Present the more difficult Answer step by step, ensuring it logically incorporates the more advanced methods or techniques.
+   - Present the more difficult answer step by step, ensuring it logically incorporates the more advanced methods or techniques.
    - Ensure that the final answer is enclosed within \\boxed{{}}.
 
 '''
