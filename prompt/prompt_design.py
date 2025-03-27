@@ -470,11 +470,13 @@ Your task is to transform the **Original Question** and corresponding **Original
 
 **Output Requirements**:
 The output should include the following sections and use **bold** formatting for each section title:
+1. **Simplification Process**:
+   - Explain **how** the simplification process reduces complexity or uses more basic methods based on the simplification criteria.
 
-1. **Simplified Question**:
+2. **Simplified Question**:
    - Provide the **revised** Question statement without any introductory or explanatory sentences.
 
-2. **Simplified Answer**:
+3. **Simplified Answer**:
    - Present the simplified answer step by step, ensuring it remains correct and logically sound.
    - Ensure that the final answer is enclosed within \\boxed{{}}.
 """
