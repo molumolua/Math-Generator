@@ -9,7 +9,7 @@ from multiprocessing import Pool
 import multiprocessing 
 from tqdm import tqdm
 from prompt.openai_access import batch_get_chat_api, get_oai_completion
-from prompt.prompt_design import createNewComplexQuestionPrompt
+from prompt.prompt_design import createNewComplexQuestionPrompt,createThinkSimpleQuestionPrompt
 from util.config import MATH_DATA_PATH
 from data.data_loader import load_problems, load_aime_problems,load_simplify_problems
 from util.util import reject_sample,parse_answer,extract_think_and_after
@@ -18,6 +18,9 @@ from util import util
 import math
 def pre_complex_fun(example):
     return createNewComplexQuestionPrompt(example['problem'], example['solution'])
+
+def pre_simplify_fun(example):
+    return createThinkSimpleQuestionPrompt(example['problem'], example['solution'])
 
 def post_fun(example, reply):
     example['answer'] = reply
@@ -54,7 +57,7 @@ def main(batch_size=1024,
     logger = setup_logger()
     logger.info("Starting main processing loop.")
     input_path ="./deepseek-math/0/math_output_deepseek.json"
-    output_path ="./outputs/glm_data-2.json"
+    output_path ="./outputs/simplify_glm_data.json"
     model="glm-4-plus"
 
     for iteration in range(start_iteration, max_iteration):
@@ -87,7 +90,7 @@ def main(batch_size=1024,
                     batch_get_chat_api(
                         examples=try_problems,
                         eng=model,
-                        pre_fun=pre_complex_fun,  # simplified
+                        pre_fun=pre_simplify_fun,  # simplified
                         post_fun=post_fun,
                         logger=logger,
                         n_processes=n_processes,
@@ -99,16 +102,16 @@ def main(batch_size=1024,
                     logger.info(try_problems[0])
                     for problem in tqdm(try_problems):
                             response=problem['answer']
-                            complex_problem, complex_solution = util.parse_answer(response, 
-                                                                                    ["Hard Question", 
-                                                                                    "Hard Answer"], 
+                            simplify_problem, simplify_solution = util.parse_answer(response, 
+                                                                                    ["Simplified Question", 
+                                                                                    "Simplified Answer"], 
                                                                                     logger=logger)
-                            if complex_solution and complex_problem:
+                            if  simplify_problem and simplify_solution:
                                 output_object = {
                                     "original_problem": problem['problem'],
                                     "original_solution": problem['solution'],
-                                    "complex_problem": complex_problem,
-                                    "complex_solution": complex_solution,
+                                    "simplify_problem": simplify_problem,
+                                    "simplify_solution": simplify_solution,
                                     "response": response
                                 }
                                 output_list.append(output_object)   
