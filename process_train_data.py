@@ -69,18 +69,31 @@ def process_train_data(data_list,output_path=None,prompt_type="generate_data",se
             json.dump(problems, output_json, ensure_ascii=False, indent=4)
     return problems
 def main():
-    file_path="./outputs/1-glm-generate-1.5b-reject.json"
-    result_path="/data/xucaijun/New/Math-Generator/outputs/open-r1-second_iter.json"
+    file_path="/data2/xucaijun/Math-Generator/outputs/7b-generate-1.5b-reject.json"
+    # result_path="/data/xucaijun/New/Math-Generator/outputs/open-r1-second_iter.json"
 
     problems=[]
     problems=[[] for i in range(11)]
     with open(file_path, 'r', encoding='utf-8') as f:
         data_list = json.load(f)
         for data in data_list:
-            problems[data['correct_num']].append(data)
+                problem=data
+                problems[problem['correct_num']].append(data)
+
+    # file_path="./outputs/second_iter_fenbu.json"
+    # with open(file_path, 'r', encoding='utf-8') as f:
+    #     data_list = json.load(f)
+    #     for data in data_list:
+    #             problem=data
+    #             problems[problem['correct_num']].append(data)
     for i in range(11):
-        result_path=f"./outputs/level-test/correct_num_{i}.json"
+        result_path=f"./outputs/level-test/7b_correct_num_{i}.json"
         process_train_data(problems[i],output_path=result_path,prompt_type="qwen_math",sections=['complex_problem','complex_solution'])
+    
+    total_problems=sum([problems[1],problems[2],problems[3],problems[4],problems[5]],[])
+    result_path=f"./outputs/level-test/7b_correct_num_11.json"
+    process_train_data(total_problems,output_path=result_path,prompt_type="qwen_math",sections=['complex_problem','complex_solution'])
+
         # with open(result_path, 'w', encoding='utf-8') as output_json:
         #         json.dump(problems[i], output_json, ensure_ascii=False, indent=4)
 
