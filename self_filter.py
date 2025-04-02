@@ -241,13 +241,20 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
 
             logger.info(f"Start reject sample.")
             if N==1:
-                generated_responses = model.generate(input_texts, sampling_params=compare_sampling_params)
-                generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
-                reject_sampled_problems = [process_think(problem, generated_response) for problem,generated_response in zip(compared_problems,generated_responses)  ]
+                # generated_responses = model.generate(input_texts, sampling_params=compare_sampling_params)
+                # generated_responses = [generated_response.outputs[0].text for generated_response in generated_responses]
+                # reject_sampled_problems = [process_think(problem, generated_response) for problem,generated_response in zip(compared_problems,generated_responses)  ]
+                # reject_sampled_problems = [
+                #     problem for problem, generated_response in tqdm(zip(compared_problems, generated_responses), total=len(compared_problems), desc="Processing Problems")
+                #     if process_reject_sample(problem, test_section_names[1],generated_response, logger)
+                # ]
+                generated_responses = model.generate(input_texts, sampling_params=sampling_params)
+                generated_responses = [[generated_response.outputs[i].text for i in range(len(generated_response.outputs))]for generated_response in generated_responses]
                 reject_sampled_problems = [
                     problem for problem, generated_response in tqdm(zip(compared_problems, generated_responses), total=len(compared_problems), desc="Processing Problems")
-                    if process_reject_sample(problem, test_section_names[1],generated_response, logger)
+                    if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger,true_reject=true_reject)
                 ]
+                show_reject_result(reject_sampled_problems,logger)
             else:
                 generated_responses = model.generate(input_texts, sampling_params=sampling_params)
                 generated_responses = [[generated_response.outputs[i].text for i in range(len(generated_response.outputs))]for generated_response in generated_responses]
@@ -281,8 +288,8 @@ def main():
 
     model_name_or_path="/data/modelscope/hub/Qwen/Qwen2___5-32B-Instruct"
 
-
-    model_name_or_path="Qwen/Qwen2.5-Math-1.5B-Instruct"
+    model_name_or_path="/data2/xucaijun/Qwen/Qwen2.5-1.5B-Instruct"
+    model_name_or_path="/data2/xucaijun/MyLLaMA-Factory/saves/MATH-Qwen2.5-Math-1.5B/full/sft"
      # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
     model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=4,dtype="bfloat16")
@@ -291,16 +298,19 @@ def main():
     )
     logger.info("Model loaded successfully.")
 
-    data_path="./outputs/glm_data.json"
+    # data_path="/data2/xucaijun/Code-Math-Generator/data/enhance/MATH_test_train.json"
+    # test_section_names=['problem','solution']
+    data_path="/data2/xucaijun/Code-Math-Generator/data/enhance/code_enhace_1_merge.json"
+    test_section_names=['complex_problem','complex_answer']
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)
-        if data_path =="./outputs/glm_data.json":
-            data_list=[]
-            for problem in problems:
-                # for problem in data:
-                    if problem['complex_problem'] != problem['original_problem']:
-                        data_list.append(problem)
-            problems=data_list
+        # if data_path =="./outputs/glm_data.json":
+        #     data_list=[]
+        #     for problem in problems:
+        #         # for problem in data:
+        #             if problem['complex_problem'] != problem['original_problem']:
+        #                 data_list.append(problem)
+        #     problems=data_list
     random.seed(0)
     random.shuffle(problems)
     problems=problems
@@ -326,9 +336,9 @@ def main():
     #             break
     
 
-    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=['complex_problem','complex_solution'],original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_solution'],\
-                            N=10,true_reject=False,enable_compare=False,batch_size=len(problems))
-    output_path="./outputs/1-glm-generate-1.5b-reject.json"
+    output_list=self_filter(model,tokenizer,problems,logger,test_section_names=test_section_names,original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_answer'],\
+                            N=1,true_reject=False,enable_compare=False,batch_size=len(problems))
+    output_path=data_path
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
 if __name__ == "__main__":
