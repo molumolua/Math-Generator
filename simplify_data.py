@@ -150,16 +150,16 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
          max_tokens=32768,
          device="cuda",
          data_name="DEEPSEEK",
-         max_iteration=3,
-         N=3,
+         max_iteration=1,
+         N=5,
         #  model_name_or_path="/data/xucaijun/LLaMA-Factory/saves/DeepSeek-R1-Distill-Qwen-32B/full/sft"
-         model_name_or_path="/data/xucaijun/DeepSeek-R1-Distill-Qwen-32B"
+         model_name_or_path="/llm/DeepSeek/DeepSeek-R1-Distill-Qwen-32B"
          ):
     logger = set_logger.setup_logger()
     logger.info("Starting main processing loop.")
     # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
-    model = LLM(model_name_or_path, device=device,tensor_parallel_size=8)
+    model = LLM(model_name_or_path, device=device,tensor_parallel_size=4)
     tokenizer = AutoTokenizer.from_pretrained(
                 model_name_or_path, trust_remote_code=True
     )
@@ -168,7 +168,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
     # Define sampling parameters
     sampling_params = SamplingParams(
         max_tokens=max_tokens,
-        temperature=0.8,
+        temperature=0.6,
         stop=stop_words,
         n=N
     )
@@ -202,7 +202,7 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
             logger.info(f"Iteation {iteration + 1}, Start simplify problems.")
             generated_responses = model.generate(input_texts, sampling_params=sampling_params)
             generated_responses = [[generated_response.outputs[i].text for i in range(N)] for generated_response in generated_responses]
-            sections = ["Simplified Problem", "Simplified Solution"]
+            sections = ["Simplified Question", "Simplified Answer"]
             simplified_problems = [[process_problem(problem, response,sections, logger) for response in generated_response ] for problem,generated_response in zip(try_problems,generated_responses)]
             simplified_problems = [[item for item in item_list if item] for item_list in simplified_problems if item_list]
             
@@ -214,15 +214,16 @@ def main(stop_words = ["</s>", "<｜Assistant｜>", "<|endoftext|>"],
             if len(todo_problems) == 0:
                 logger.info("No problem for reject sample.")
                 continue
-
-            compared_problems=self_filter(model,tokenizer,todo_problems,logger,batch_size=len(todo_problems),N=1,test_section_names=['problem','solution'],original_section_names=['problem','solution'],complex_section_names=['original_problem','original_solution'])
+            
+            compared_problems = todo_problems
+            # compared_problems=self_filter(model,tokenizer,todo_problems,logger,batch_size=len(todo_problems),N=1,test_section_names=['problem','solution'],original_section_names=['problem','solution'],complex_section_names=['original_problem','original_solution'])
             #add_think
-            compared_problems=add_think(model,tokenizer,logger,compared_problems,save=0)
+            # compared_problems=add_think(model,tokenizer,logger,compared_problems,save=0)
 
             done_problems +=compared_problems
 
             done_problems = process_output_data(done_problems)
-            save_problems_to_json("simplify_problem.json",done_problems,iteration+1,logger)
+            save_problems_to_json("raw_simplify_problem.json",done_problems,iteration+1,logger)
             # save_problems_to_jsonl("train_data.jsonl",done_problems,iteration+1,logger)
                 
             logger.info(f"Iteration {iteration + 1} completed,Total {len(done_problems)}/{len(problems)} has been simplified.")

@@ -25,77 +25,77 @@ import multiprocessing
 
 import concurrent.futures
 import time
-# def process_reject_sample(problem, section,response, logger):
-#     try:
-#         if problem and problem.get(section) and response:
-#             return reject_sample(response, problem[section])
-#         else:
-#             logger.warning(f"Missing data for reject sample.")
-#             return False
-#     except Exception as e:
-#         logger.error(f"Error in reject_sample: {e}")
-#         return False
+
 def process_reject_sample(problem, section,response, logger,timeout=10):
     """
     在单独的进程中执行reject_sample相关的操作，
     如果超过设定的超时时间（默认为10秒），直接杀死子进程并返回False
     """
+    if timeout >0:
+        # 这个内部函数里放需要执行的逻辑，比如调用 reject_sample 及其子函数
+        def _worker_func(return_dict, problem, response):
+            try:
+                if problem and problem.get(section) and response:
+                    # 如果你还需要传 logger 或其它参数，也可一并加入
+                    result = reject_sample(response, problem[section],timeout=False)
+                    return_dict['result'] = result
+                else:
+                    logger.warning("Missing data for reject sample.")
+                    return_dict['result'] = False
+            except Exception as e:
+                logger.error(f"Error in reject_sample: {e}")
+                return_dict['result'] = False
 
-    # 这个内部函数里放需要执行的逻辑，比如调用 reject_sample 及其子函数
-    def _worker_func(return_dict, problem, response):
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
+
+        # 创建子进程
+        p = multiprocessing.Process(
+            target=_worker_func,
+            args=(return_dict, problem, response)
+        )
+
+        try:
+            # 启动子进程
+            p.start()
+            # 设置最大等待时间20秒
+            p.join(timeout=timeout)
+
+            # 如果子进程还存活，说明超时
+            if p.is_alive():
+                logger.warning(problem)
+                logger.warning(response)
+                logger.warning(f"process_reject_sample exceeded the timeout limit of {timeout} seconds.")
+                p.terminate()   # 终止子进程
+                p.join()        # 回收子进程
+                return False
+
+            # 如果没超时就获取执行结果
+            result = return_dict.get('result', False)
+            return result
+        except Exception as e:
+            logger.error(f"Exception in process_reject_sample: {e}")
+            if p.is_alive():
+                p.terminate()
+                p.join()
+            return False
+    else:
         try:
             if problem and problem.get(section) and response:
-                # 如果你还需要传 logger 或其它参数，也可一并加入
-                result = reject_sample(response, problem[section],timeout=False)
-                return_dict['result'] = result
+                return reject_sample(response, problem[section])
             else:
-                logger.warning("Missing data for reject sample.")
-                return_dict['result'] = False
+                logger.warning(f"Missing data for reject sample.")
+                return False
         except Exception as e:
             logger.error(f"Error in reject_sample: {e}")
-            return_dict['result'] = False
-
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
-
-    # 创建子进程
-    p = multiprocessing.Process(
-        target=_worker_func,
-        args=(return_dict, problem, response)
-    )
-
-    try:
-        # 启动子进程
-        p.start()
-        # 设置最大等待时间20秒
-        p.join(timeout=timeout)
-
-        # 如果子进程还存活，说明超时
-        if p.is_alive():
-            logger.warning(problem)
-            logger.warning(response)
-            logger.warning(f"process_reject_sample exceeded the timeout limit of {timeout} seconds.")
-            p.terminate()   # 终止子进程
-            p.join()        # 回收子进程
             return False
-
-        # 如果没超时就获取执行结果
-        result = return_dict.get('result', False)
-        return result
-
-    except Exception as e:
-        logger.error(f"Exception in process_reject_sample: {e}")
-        if p.is_alive():
-            p.terminate()
-            p.join()
-        return False
-def process_muti_reject_sample(problem,section,responses,correct_limit,logger,true_reject=True):
+def process_muti_reject_sample(problem,section,responses,correct_limit,logger,true_reject=True,timeout=10):
     try:
         if problem and problem.get(section) and responses:
             # 如果你还需要传 logger 或其它参数，也可一并加入
             result=0
             for response in responses:
-                if process_reject_sample(problem, section,response, logger,timeout=10):
+                if process_reject_sample(problem, section,response, logger,timeout=timeout):
                     result+=1
             problem['correct_num']=result
             if not true_reject:
@@ -164,7 +164,8 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
          N=5,
          correct_limit=3,
          enable_compare = True,
-         true_reject =True
+         true_reject =True,
+         timeout=10,
          ):
 
     # Define sampling parameters
@@ -252,7 +253,7 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
                 generated_responses = [[generated_response.outputs[i].text for i in range(len(generated_response.outputs))]for generated_response in generated_responses]
                 reject_sampled_problems = [
                     problem for problem, generated_response in tqdm(zip(compared_problems, generated_responses), total=len(compared_problems), desc="Processing Problems")
-                    if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger,true_reject=true_reject)
+                    if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger,true_reject=true_reject,timeout=timeout)
                 ]
                 show_reject_result(reject_sampled_problems,logger)
             else:
@@ -260,7 +261,7 @@ def self_filter(model,tokenizer,problems,logger,stop_words = ["</s>", "<｜Assis
                 generated_responses = [[generated_response.outputs[i].text for i in range(len(generated_response.outputs))]for generated_response in generated_responses]
                 reject_sampled_problems = [
                     problem for problem, generated_response in tqdm(zip(compared_problems, generated_responses), total=len(compared_problems), desc="Processing Problems")
-                    if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger,true_reject=true_reject)
+                    if process_muti_reject_sample(problem, test_section_names[1],generated_response,correct_limit,logger,true_reject=true_reject,timeout=timeout)
                 ]
                 show_reject_result(reject_sampled_problems,logger)
             logger.info(f"{len(reject_sampled_problems)} problems pass reject sample.")
@@ -289,7 +290,7 @@ def main():
     model_name_or_path="/data/modelscope/hub/Qwen/Qwen2___5-32B-Instruct"
 
     model_name_or_path="/data2/xucaijun/Qwen/Qwen2.5-1.5B-Instruct"
-    model_name_or_path="/data2/xucaijun/MyLLaMA-Factory/saves/MATH-Qwen2.5-Math-1.5B/full/sft"
+    # model_name_or_path="/data2/xucaijun/MyLLaMA-Factory/saves/MATH-Qwen2.5-Math-1.5B/full/sft"
      # Load vLLM model
     logger.info(f"Loading model from {model_name_or_path}...")
     model = LLM(model_name_or_path, device="cuda",tensor_parallel_size=4,dtype="bfloat16")
@@ -300,8 +301,10 @@ def main():
 
     # data_path="/data2/xucaijun/Code-Math-Generator/data/enhance/MATH_test_train.json"
     # test_section_names=['problem','solution']
-    data_path="/data2/xucaijun/Code-Math-Generator/data/enhance/code_enhace_1_merge.json"
-    test_section_names=['complex_problem','complex_answer']
+    data_path="/data2/xucaijun/Math-Generator/new-deepseek-math/0/math_output_deepseek.json"
+    output_path="/data2/xucaijun/Math-Generator/outputs/1.5b_rejected_math_output_deepseek.json"
+    test_section_names=['problem','solution']
+    timeout=0
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)
         # if data_path =="./outputs/glm_data.json":
@@ -311,9 +314,9 @@ def main():
         #             if problem['complex_problem'] != problem['original_problem']:
         #                 data_list.append(problem)
         #     problems=data_list
-    random.seed(0)
-    random.shuffle(problems)
-    problems=problems
+    # random.seed(0)
+    # random.shuffle(problems)
+    # problems=problems
 
     # data_path_2="/data/xucaijun/New/Math-Generator/outputs/tmp_2.json"
     # with open(data_path_2, 'r', encoding='utf-8') as f:
@@ -337,8 +340,8 @@ def main():
     
 
     output_list=self_filter(model,tokenizer,problems,logger,test_section_names=test_section_names,original_section_names=['original_problem','original_solution'],complex_section_names=['complex_problem','complex_answer'],\
-                            N=1,true_reject=False,enable_compare=False,batch_size=len(problems))
-    output_path=data_path
+                            N=16,true_reject=False,enable_compare=False,batch_size=len(problems),timeout=timeout)
+    # output_path=data_path
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_list, f, ensure_ascii=False, indent=4)
 if __name__ == "__main__":
