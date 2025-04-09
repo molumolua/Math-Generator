@@ -4,6 +4,14 @@ import re
 from evaluation.grader import math_equal
 from evaluation.parser import extract_answer
 from collections import defaultdict
+import os
+import json
+import random
+import json
+import os
+import numpy as np
+from pathlib import Path
+from typing import Iterable, Union, Any
 
 def last_boxed_only(sample):
     q, a = sample
@@ -427,3 +435,24 @@ def process_output_data(data_list):
     # 转换成二维 list
     result = list(grouped.values())
     return result
+
+
+def load_jsonl(file: Union[str, Path]) -> Iterable[Any]:
+    with open(file, "r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                yield json.loads(line)
+            except:
+                print("Error in loading:", line)
+                exit()
+
+
+def save_jsonl(samples, save_path):
+    # ensure path
+    folder = os.path.dirname(save_path)
+    os.makedirs(folder, exist_ok=True)
+
+    with open(save_path, "w", encoding="utf-8") as f:
+        for sample in samples:
+            f.write(json.dumps(sample, ensure_ascii=False) + "\n")
+    print("Saved to", save_path)

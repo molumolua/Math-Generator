@@ -22,6 +22,8 @@ from util import util, set_logger
 import random
 import multiprocessing
 
+from util.evaluate import evaluate
+
 
 import concurrent.futures
 import time
@@ -301,22 +303,23 @@ def main():
 
     # data_path="/data2/xucaijun/Code-Math-Generator/data/enhance/MATH_test_train.json"
     # test_section_names=['problem','solution']
-    data_path="/data2/xucaijun/Math-Generator/new-deepseek-math/0/math_output_deepseek.json"
-    output_path="/data2/xucaijun/Math-Generator/outputs/1.5b_rejected_math_output_deepseek.json"
+    data_path="/data2/xucaijun/Math-Generator/new-deepseek-math/1/raw_simplify_problem.json"
+    output_path="/data2/xucaijun/Math-Generator/outputs/1.5b_rejected_simplify_data.json"
     test_section_names=['problem','solution']
     timeout=0
     with open(data_path, 'r', encoding='utf-8') as f:
         problems = json.load(f)
-        # if data_path =="./outputs/glm_data.json":
-        #     data_list=[]
-        #     for problem in problems:
-        #         # for problem in data:
-        #             if problem['complex_problem'] != problem['original_problem']:
-        #                 data_list.append(problem)
-        #     problems=data_list
+        if data_path =="/data2/xucaijun/Math-Generator/new-deepseek-math/1/raw_simplify_problem.json":
+            data_list=[]
+            for problem in problems:
+                for data in problem:
+                # for problem in data:
+                    if data['problem'] != data['original_problem']:
+                        data_list.append(data)
+            problems=data_list
     # random.seed(0)
     # random.shuffle(problems)
-    # problems=problems
+    # problems=problems[:10]
 
     # data_path_2="/data/xucaijun/New/Math-Generator/outputs/tmp_2.json"
     # with open(data_path_2, 'r', encoding='utf-8') as f:
